@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { auth } from 'express-oauth2-jwt-bearer';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import type { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -28,7 +29,12 @@ async function bootstrap() {
     tokenSigningAlg: 'RS256',
   });
 
-  app.use(jwtCheck);
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.method === 'OPTIONS') {
+      return next();
+    }
+    jwtCheck(req, res, next);
+  });
 
   await app.listen(process.env.PORT ?? 3000);
 }
