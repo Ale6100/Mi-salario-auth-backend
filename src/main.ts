@@ -5,6 +5,7 @@ import { auth } from 'express-oauth2-jwt-bearer';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import type { Request, Response, NextFunction } from 'express';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -23,18 +24,27 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const jwtCheck = auth({
-    audience,
-    issuerBaseURL,
-    tokenSigningAlg: 'RS256',
-  });
+  const isProduction = configService.get<string>('NODE_ENV') === 'production';
+  if (isProduction) {
+    const jwtCheck = auth({
+      audience,
+      issuerBaseURL,
+      tokenSigningAlg: 'RS256',
+    });
 
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    if (req.method === 'OPTIONS') {
-      return next();
-    }
-    jwtCheck(req, res, next);
-  });
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      if (req.method === 'OPTIONS') {
+        return next();
+      }
+      jwtCheck(req, res, next);
+    });
+  }
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+    }),
+  );
 
   await app.listen(process.env.PORT ?? 3000);
 }

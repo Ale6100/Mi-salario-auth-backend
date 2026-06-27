@@ -3,19 +3,19 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import {
-  FuentesIngreso,
-  FuentesIngresoSchema,
+  FuentesIngresos,
+  FuentesIngresosSchema,
 } from './schema/fuentes_ingreso.schema';
-import { FuentesIngresoController } from './fuentes_ingreso.controller';
-import { FuentesIngresoService } from './fuentes_ingreso.service';
+import { FuentesIngresosController } from './fuentes_ingreso.controller';
+import { FuentesIngresosService } from './fuentes_ingreso.service';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: FuentesIngreso.name, schema: FuentesIngresoSchema },
+      { name: FuentesIngresos.name, schema: FuentesIngresosSchema },
     ]),
   ],
-  controllers: [FuentesIngresoController],
-  providers: [FuentesIngresoService],
+  controllers: [FuentesIngresosController],
+  providers: [FuentesIngresosService],
 })
-export class FuentesIngresoModule {}
+export class FuentesIngresosModule {}

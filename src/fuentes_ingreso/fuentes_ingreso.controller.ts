@@ -1,36 +1,107 @@
 // src\fuentes_ingreso\fuentes_ingreso.controller.ts
 
 import {
-  BadRequestException,
+  Body,
   Controller,
+  Delete,
   Get,
   InternalServerErrorException,
+  Param,
+  Post,
+  Put,
+  Query,
 } from '@nestjs/common';
-import { AuthSub } from '../utils/auth-sub.decorator';
-import { FuentesIngresoService } from './fuentes_ingreso.service';
+import { UpdateFuentesIngresosDto } from './dto/update-fuentes_ingresos.dto';
+import { QuerySubDto } from './dto/query.dto';
+import { CreateFuentesIngresosDto } from './dto/create-fuentes_ingresos.dto';
+import { FuentesIngresosService } from './fuentes_ingreso.service';
 
-@Controller('fuentes-ingreso')
-export class FuentesIngresoController {
-  constructor(private readonly fuentesIngresoService: FuentesIngresoService) {}
+@Controller('fuentes-ingresos')
+export class FuentesIngresosController {
+  constructor(
+    private readonly fuentesIngresosService: FuentesIngresosService,
+  ) {}
 
   @Get()
-  async findAllBySub(@AuthSub() sub: string | undefined) {
-    if (!sub) {
-      throw new BadRequestException(
-        'No se pudo identificar al usuario desde el token',
-      );
-    }
-
+  async findAllBySub(@Query() { sub }: QuerySubDto) {
     try {
-      const data = await this.fuentesIngresoService.findAllBySub({ sub });
+      const data = await this.fuentesIngresosService.findAllBySub({ sub });
 
       return {
         statusCode: 200,
         data,
       };
-    } catch {
+    } catch (error) {
       throw new InternalServerErrorException(
-        'Ocurrió un error al obtener las fuentes de ingreso',
+        error instanceof Error
+          ? error.message
+          : 'Ocurrió un error al obtener las fuentes de ingreso',
+      );
+    }
+  }
+
+  @Post()
+  async createBySub(
+    @Query() query: QuerySubDto,
+    @Body() createFuentesIngresoDto: CreateFuentesIngresosDto,
+  ) {
+    try {
+      const data = await this.fuentesIngresosService.createBySub({
+        sub: query.sub,
+        createFuentesIngresoDto,
+      });
+
+      return {
+        statusCode: 201,
+        data,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        error instanceof Error
+          ? error.message
+          : 'Ocurrió un error al crear la fuente de ingreso',
+      );
+    }
+  }
+
+  @Put(':id')
+  async updateById(
+    @Param('id') id: string,
+    @Body() updateFuentesIngresosDto: UpdateFuentesIngresosDto,
+  ) {
+    try {
+      const data = await this.fuentesIngresosService.updateById({
+        id,
+        updateFuentesIngresosDto,
+      });
+
+      return {
+        statusCode: 200,
+        data,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        error instanceof Error
+          ? error.message
+          : 'Ocurrió un error al actualizar la fuente de ingreso',
+      );
+    }
+  }
+
+  @Delete(':id')
+  async deleteById(@Param('id') id: string) {
+    try {
+      const data = await this.fuentesIngresosService.deleteById({ id });
+
+      return {
+        statusCode: 200,
+        data,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        error instanceof Error
+          ? error.message
+          : 'Ocurrió un error al eliminar la fuente de ingreso',
       );
     }
   }

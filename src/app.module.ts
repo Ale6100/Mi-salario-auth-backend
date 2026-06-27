@@ -3,7 +3,7 @@
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { FuentesIngresoModule } from './fuentes_ingreso/fuentes_ingreso.module';
+import { FuentesIngresosModule } from './fuentes_ingreso/fuentes_ingreso.module';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
@@ -17,7 +17,7 @@ import { MongooseModule } from '@nestjs/mongoose';
         uri: configService.get<string>('MONGO_URI'),
       }),
     }),
-    FuentesIngresoModule,
+    FuentesIngresosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

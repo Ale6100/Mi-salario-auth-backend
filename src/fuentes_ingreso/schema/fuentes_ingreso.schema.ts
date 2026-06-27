@@ -1,14 +1,14 @@
-// src\fuentes_ingreso\schema\fuentes_ingreso.schema.ts
+// src\fuentes_ingreso\schema\fuentes_ingresos.schema.ts
 
 import { HydratedDocument } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-export type FuentesIngresoDocument = HydratedDocument<FuentesIngreso>;
+export type FuentesIngresosDocument = HydratedDocument<FuentesIngresos>;
 
 @Schema({
   timestamps: true,
 })
-export class FuentesIngreso {
+export class FuentesIngresos {
   @Prop({
     type: String,
     required: true,
@@ -42,5 +42,5 @@ export class FuentesIngreso {
   color!: string; // Color en hex "#XXXXXX" (Todo: tantear si conviene este formato)
 }
 
-export const FuentesIngresoSchema =
-  SchemaFactory.createForClass(FuentesIngreso);
+export const FuentesIngresosSchema =
+  SchemaFactory.createForClass(FuentesIngresos);
