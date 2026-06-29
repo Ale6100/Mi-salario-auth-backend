@@ -1,6 +1,6 @@
 // src\conceptos_ingresos\schema\conceptos_ingresos.schema.ts
 
-import { FuentesIngresos } from 'src/fuentes_ingresos/schema/fuentes_ingresos.schema';
+import { FuentesIngresos } from '../../fuentes_ingresos/schema/fuentes_ingresos.schema';
 import { HydratedDocument, Types } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 

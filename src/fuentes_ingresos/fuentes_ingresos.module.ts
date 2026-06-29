@@ -3,7 +3,7 @@
 import {
   ConceptosIngresos,
   ConceptosIngresosSchema,
-} from 'src/conceptos_ingresos/schema/conceptos_ingresos.schema';
+} from '../conceptos_ingresos/schema/conceptos_ingresos.schema';
 import {
   FuentesIngresos,
   FuentesIngresosSchema,

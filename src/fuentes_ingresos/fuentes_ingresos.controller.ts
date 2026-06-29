@@ -21,7 +21,7 @@ import {
 } from '@nestjs/common';
 import { CreateFuentesIngresosDto } from './dto/create-fuentes_ingresos.dto';
 import { FuentesIngresosService } from './fuentes_ingresos.service';
-import { QuerySubDto } from 'src/utils/query.dto';
+import { QuerySubDto } from '../utils/query.dto';
 import { UpdateFuentesIngresosDto } from './dto/update-fuentes_ingresos.dto';
 
 @ApiTags('Fuentes de Ingreso')

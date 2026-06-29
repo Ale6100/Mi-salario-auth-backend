@@ -18,7 +18,7 @@ import {
 } from '@nestjs/common';
 import { ConceptosIngresosService } from './conceptos_ingresos.service';
 import { CreateConceptosIngresosDto } from './dto/create-conceptos_ingresos.dto';
-import { QuerySubDto } from 'src/utils/query.dto';
+import { QuerySubDto } from '../utils/query.dto';
 import { UpdateConceptosIngresosDto } from './dto/update-conceptos_ingresos.dto';
 
 @ApiTags('Conceptos de Ingreso')

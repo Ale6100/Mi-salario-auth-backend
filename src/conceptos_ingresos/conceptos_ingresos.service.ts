@@ -5,7 +5,7 @@ import { CreateConceptosIngresosDto } from './dto/create-conceptos_ingresos.dto'
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { QuerySubDto } from 'src/utils/query.dto';
+import { QuerySubDto } from '../utils/query.dto';
 import { UpdateConceptosIngresosDto } from './dto/update-conceptos_ingresos.dto';
 
 @Injectable()

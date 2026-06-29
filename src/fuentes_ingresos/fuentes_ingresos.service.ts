@@ -1,13 +1,13 @@
 // src\fuentes_ingresos\fuentes_ingresos.service.ts
 
-import { ConceptosIngresos } from 'src/conceptos_ingresos/schema/conceptos_ingresos.schema';
+import { ConceptosIngresos } from '../conceptos_ingresos/schema/conceptos_ingresos.schema';
 import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateFuentesIngresosDto } from './dto/create-fuentes_ingresos.dto';
 import { FuentesIngresos } from './schema/fuentes_ingresos.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UpdateFuentesIngresosDto } from './dto/update-fuentes_ingresos.dto';
-import { QuerySubDto } from 'src/utils/query.dto';
+import { QuerySubDto } from '../utils/query.dto';
 
 @Injectable()
 export class FuentesIngresosService {
