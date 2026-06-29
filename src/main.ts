@@ -25,20 +25,22 @@ async function bootstrap() {
     credentials: true,
   });
 
-  //* ----- Opcionalmente se puede comentar esto en desarrollo
-  const jwtCheck = auth({
-    audience,
-    issuerBaseURL,
-    tokenSigningAlg: 'RS256',
-  });
+  const isDevelopment = process.env.NODE_ENV === 'development';
 
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    if (req.method === 'OPTIONS') {
-      return next();
-    }
-    jwtCheck(req, res, next);
-  });
-  //* -----
+  if (!isDevelopment) {
+    const jwtCheck = auth({
+      audience,
+      issuerBaseURL,
+      tokenSigningAlg: 'RS256',
+    });
+
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      if (req.method === 'OPTIONS') {
+        return next();
+      }
+      jwtCheck(req, res, next);
+    });
+  }
 
   app.useGlobalPipes(
     new ValidationPipe({

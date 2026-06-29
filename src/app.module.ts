@@ -2,6 +2,7 @@
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ConceptosIngresosModule } from './conceptos_ingresos/conceptos_ingresos.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { FuentesIngresosModule } from './fuentes_ingresos/fuentes_ingresos.module';
 import { Module } from '@nestjs/common';
@@ -18,6 +19,7 @@ import { MongooseModule } from '@nestjs/mongoose';
       }),
     }),
     FuentesIngresosModule,
+    ConceptosIngresosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

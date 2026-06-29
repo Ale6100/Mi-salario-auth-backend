@@ -1,4 +1,4 @@
-// src\fuentes_ingreso\dto\query.dto.ts
+// src\utils\query.dto.ts
 
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';

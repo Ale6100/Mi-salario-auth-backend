@@ -1,5 +1,3 @@
-// src\fuentes_ingresos\fuentes_ingreso.controller.ts
-
 import {
   ApiOperation,
   ApiParam,
@@ -17,25 +15,24 @@ import {
   Post,
   Put,
   Query,
-  HttpException,
 } from '@nestjs/common';
-import { CreateFuentesIngresosDto } from './dto/create-fuentes_ingresos.dto';
-import { FuentesIngresosService } from './fuentes_ingresos.service';
+import { ConceptosIngresosService } from './conceptos_ingresos.service';
+import { CreateConceptosIngresosDto } from './dto/create-conceptos_ingresos.dto';
 import { QuerySubDto } from 'src/utils/query.dto';
-import { UpdateFuentesIngresosDto } from './dto/update-fuentes_ingresos.dto';
+import { UpdateConceptosIngresosDto } from './dto/update-conceptos_ingresos.dto';
 
-@ApiTags('Fuentes de Ingreso')
-@Controller('fuentes-ingresos')
-export class FuentesIngresosController {
+@ApiTags('Conceptos de Ingreso')
+@Controller('conceptos-ingresos')
+export class ConceptosIngresosController {
   constructor(
-    private readonly fuentesIngresosService: FuentesIngresosService,
+    private readonly conceptosIngresosService: ConceptosIngresosService,
   ) {}
 
   @Get()
   @ApiOperation({
-    summary: 'Obtener todas las fuentes de ingreso por usuario',
+    summary: 'Obtener todos los conceptos de ingreso por usuario',
     description:
-      'Devuelve todas las fuentes de ingreso asociadas a un usuario (sub)',
+      'Devuelve todos los conceptos de ingreso asociados a un usuario (sub)',
   })
   @ApiQuery({
     name: 'sub',
@@ -43,11 +40,11 @@ export class FuentesIngresosController {
     required: true,
     type: String,
   })
-  @ApiResponse({ status: 200, description: 'Lista de fuentes de ingreso' })
+  @ApiResponse({ status: 200, description: 'Lista de conceptos de ingreso' })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
   async findAllBySub(@Query() { sub }: QuerySubDto) {
     try {
-      const data = await this.fuentesIngresosService.findAllBySub({ sub });
+      const data = await this.conceptosIngresosService.findAllBySub({ sub });
 
       return {
         statusCode: 200,
@@ -57,26 +54,28 @@ export class FuentesIngresosController {
       throw new InternalServerErrorException(
         error instanceof Error
           ? error.message
-          : 'Ocurrió un error al obtener las fuentes de ingreso',
+          : 'Ocurrió un error al obtener los conceptos de ingreso',
       );
     }
   }
 
   @Post()
   @ApiOperation({
-    summary: 'Crear una fuente de ingreso',
+    summary: 'Crear un concepto de ingreso',
     description:
-      'Crea una nueva fuente de ingreso para el usuario especificado',
+      'Crea un nuevo concepto de ingreso para el usuario especificado',
   })
   @ApiResponse({
     status: 201,
-    description: 'Fuente de ingreso creada exitosamente',
+    description: 'Concepto de ingreso creado exitosamente',
   })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
-  async createBySub(@Body() createFuentesIngresoDto: CreateFuentesIngresosDto) {
+  async createBySourceSub(
+    @Body() createConceptosIngresosDto: CreateConceptosIngresosDto,
+  ) {
     try {
-      const data = await this.fuentesIngresosService.createBySub({
-        createFuentesIngresoDto,
+      const data = await this.conceptosIngresosService.createBySourceSub({
+        createConceptosIngresosDto,
       });
 
       return {
@@ -87,36 +86,36 @@ export class FuentesIngresosController {
       throw new InternalServerErrorException(
         error instanceof Error
           ? error.message
-          : 'Ocurrió un error al crear la fuente de ingreso',
+          : 'Ocurrió un error al crear el concepto de ingreso',
       );
     }
   }
 
   @Put(':id')
   @ApiOperation({
-    summary: 'Actualizar una fuente de ingreso',
+    summary: 'Actualizar un concepto de ingreso',
     description:
-      'Actualiza los datos de una fuente de ingreso existente por su ID',
+      'Actualiza los datos de un concepto de ingreso existente por su ID',
   })
   @ApiParam({
     name: 'id',
-    description: 'ID de la fuente de ingreso',
+    description: 'ID del concepto de ingreso',
     required: true,
     type: String,
   })
   @ApiResponse({
     status: 200,
-    description: 'Fuente de ingreso actualizada exitosamente',
+    description: 'Concepto de ingreso actualizado exitosamente',
   })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
   async updateById(
     @Param('id') id: string,
-    @Body() updateFuentesIngresosDto: UpdateFuentesIngresosDto,
+    @Body() updateConceptosIngresosDto: UpdateConceptosIngresosDto,
   ) {
     try {
-      const data = await this.fuentesIngresosService.updateById({
+      const data = await this.conceptosIngresosService.updateById({
         id,
-        updateFuentesIngresosDto,
+        updateConceptosIngresosDto,
       });
 
       return {
@@ -127,43 +126,40 @@ export class FuentesIngresosController {
       throw new InternalServerErrorException(
         error instanceof Error
           ? error.message
-          : 'Ocurrió un error al actualizar la fuente de ingreso',
+          : 'Ocurrió un error al actualizar el concepto de ingreso',
       );
     }
   }
 
   @Delete(':id')
   @ApiOperation({
-    summary: 'Eliminar una fuente de ingreso',
-    description: 'Elimina una fuente de ingreso existente por su ID ',
+    summary: 'Eliminar un concepto de ingreso',
+    description: 'Elimina un concepto de ingreso existente por su ID',
   })
   @ApiParam({
     name: 'id',
-    description: 'ID de la fuente de ingreso',
+    description: 'ID del concepto de ingreso',
     required: true,
     type: String,
   })
   @ApiResponse({
     status: 200,
-    description: 'Fuente de ingreso eliminada exitosamente',
+    description: 'Concepto de ingreso eliminado exitosamente',
   })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
   async deleteById(@Param('id') id: string) {
     try {
-      const data = await this.fuentesIngresosService.deleteById({ id });
+      const data = await this.conceptosIngresosService.deleteById({ id });
 
       return {
         statusCode: 200,
         data,
       };
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
       throw new InternalServerErrorException(
         error instanceof Error
           ? error.message
-          : 'Ocurrió un error al eliminar la fuente de ingreso',
+          : 'Ocurrió un error al eliminar el concepto de ingreso',
       );
     }
   }
