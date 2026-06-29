@@ -39,7 +39,7 @@ export class FuentesIngresos {
     type: String,
     required: true,
   })
-  color!: string; // Color en hex "#XXXXXX" (Todo: tantear si conviene este formato)
+  color!: string; // Color en hex "#XXXXXX"
 }
 
 export const FuentesIngresosSchema =
