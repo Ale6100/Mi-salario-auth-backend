@@ -21,7 +21,7 @@ import {
 import { UpdateFuentesIngresosDto } from './dto/update-fuentes_ingresos.dto';
 import { QuerySubDto } from './dto/query.dto';
 import { CreateFuentesIngresosDto } from './dto/create-fuentes_ingresos.dto';
-import { FuentesIngresosService } from './fuentes_ingreso.service';
+import { FuentesIngresosService } from './fuentes_ingresos.service';
 
 @ApiTags('Fuentes de Ingreso')
 @Controller('fuentes-ingresos')

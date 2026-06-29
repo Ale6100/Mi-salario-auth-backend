@@ -6,8 +6,8 @@ import {
   FuentesIngresos,
   FuentesIngresosSchema,
 } from './schema/fuentes_ingreso.schema';
-import { FuentesIngresosController } from './fuentes_ingreso.controller';
-import { FuentesIngresosService } from './fuentes_ingreso.service';
+import { FuentesIngresosController } from './fuentes_ingresos.controller';
+import { FuentesIngresosService } from './fuentes_ingresos.service';
 
 @Module({
   imports: [
