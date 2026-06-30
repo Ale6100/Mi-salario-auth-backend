@@ -1,10 +1,10 @@
-// src\fuentes_ingresos\dto\create-fuentes_ingresos.dto.ts
+// src\fuentes_gastos\dto\create-fuentes_gastos.dto.ts
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, IsString, Matches } from 'class-validator';
+import { IsString, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-export class CreateFuentesIngresosDto {
+export class CreateFuentesGastosDto {
   @ApiProperty({
     description: 'Identificador único del usuario (sub)',
   })
@@ -12,31 +12,13 @@ export class CreateFuentesIngresosDto {
   readonly sub!: string;
 
   @ApiProperty({
-    description: 'Nombre de la fuente de ingreso',
+    description: 'Nombre de la fuente de gastos',
   })
   @IsString()
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )
   readonly nombre!: string;
-
-  @ApiProperty({
-    description: 'Indica si la fuente de ingreso está activa',
-    default: true,
-    required: false,
-  })
-  @IsBoolean()
-  @IsOptional()
-  readonly activo!: boolean;
-
-  @ApiProperty({
-    description: 'Indica si corresponde a un aguinaldo (SAC)',
-    default: false,
-    required: false,
-  })
-  @IsBoolean()
-  @IsOptional()
-  readonly aguinaldo?: boolean;
 
   @ApiProperty({
     description: 'Color en formato hexadecimal (#XXXXXX o #XXXXXXXX)',

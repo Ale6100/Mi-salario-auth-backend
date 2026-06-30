@@ -14,7 +14,7 @@ export class ConceptosIngresos {
     required: true,
     index: true,
   })
-  id_fuente_ingreso!: Types.ObjectId; // Identificador único de la fuente de ingreso
+  id_fuente_ingreso!: Types.ObjectId; // Identificador único de la fuente de ingreso | Todo: Realmente luego debería llamarla fuente_ingreso ya que le hago populate
 
   @Prop({
     type: String,

@@ -6,8 +6,8 @@ import { CreateFuentesIngresosDto } from './dto/create-fuentes_ingresos.dto';
 import { FuentesIngresos } from './schema/fuentes_ingresos.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UpdateFuentesIngresosDto } from './dto/update-fuentes_ingresos.dto';
 import { QuerySubDto } from '../utils/query.dto';
+import { UpdateFuentesIngresosDto } from './dto/update-fuentes_ingresos.dto';
 
 @Injectable()
 export class FuentesIngresosService {
@@ -22,7 +22,7 @@ export class FuentesIngresosService {
     return this.fuentesIngresosModel.find({ sub }).exec();
   }
 
-  async createBySub({
+  async create({
     createFuentesIngresoDto,
   }: {
     createFuentesIngresoDto: CreateFuentesIngresosDto;

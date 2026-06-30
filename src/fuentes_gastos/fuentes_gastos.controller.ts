@@ -1,4 +1,4 @@
-// src\fuentes_ingresos\fuentes_ingreso.controller.ts
+// src\fuentes_gastos\fuentes_gastos.controller.ts
 
 import {
   ApiOperation,
@@ -12,30 +12,28 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
   InternalServerErrorException,
   Param,
   Post,
   Put,
   Query,
-  HttpException,
 } from '@nestjs/common';
-import { CreateFuentesIngresosDto } from './dto/create-fuentes_ingresos.dto';
-import { FuentesIngresosService } from './fuentes_ingresos.service';
+import { CreateFuentesGastosDto } from './dto/create-fuentes_gastos.dto';
+import { FuentesGastosService } from './fuentes_gastos.service';
 import { QuerySubDto } from '../utils/query.dto';
-import { UpdateFuentesIngresosDto } from './dto/update-fuentes_ingresos.dto';
+import { UpdateFuentesGastosDto } from './dto/update-fuentes_gastos.dto';
 
-@ApiTags('Fuentes de Ingreso')
-@Controller('fuentes-ingresos')
-export class FuentesIngresosController {
-  constructor(
-    private readonly fuentesIngresosService: FuentesIngresosService,
-  ) {}
+@ApiTags('Conceptos de Gastos')
+@Controller('fuentes-gastos')
+export class FuentesGastosController {
+  constructor(private readonly fuentesGastosService: FuentesGastosService) {}
 
   @Get()
   @ApiOperation({
-    summary: 'Obtener todas las fuentes de ingreso por usuario',
+    summary: 'Obtener todas las fuentes de gastos por usuario',
     description:
-      'Devuelve todas las fuentes de ingreso asociadas a un usuario (sub)',
+      'Devuelve todas las fuentes de gastos asociadas a un usuario (sub)',
   })
   @ApiQuery({
     name: 'sub',
@@ -43,11 +41,11 @@ export class FuentesIngresosController {
     required: true,
     type: String,
   })
-  @ApiResponse({ status: 200, description: 'Lista de fuentes de ingreso' })
+  @ApiResponse({ status: 200, description: 'Lista de fuentes de gastos' })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
   async findAllBySub(@Query() { sub }: QuerySubDto) {
     try {
-      const data = await this.fuentesIngresosService.findAllBySub({ sub });
+      const data = await this.fuentesGastosService.findAllBySub({ sub });
 
       return {
         statusCode: 200,
@@ -57,26 +55,25 @@ export class FuentesIngresosController {
       throw new InternalServerErrorException(
         error instanceof Error
           ? error.message
-          : 'Ocurrió un error al obtener las fuentes de ingreso',
+          : 'Ocurrió un error al obtener las fuentes de gastos',
       );
     }
   }
 
   @Post()
   @ApiOperation({
-    summary: 'Crear una fuente de ingreso',
-    description:
-      'Crea una nueva fuente de ingreso para el usuario especificado',
+    summary: 'Crear una fuente de gastos',
+    description: 'Crea una nueva fuente de gastos para el usuario especificado',
   })
   @ApiResponse({
     status: 201,
-    description: 'Fuente de ingreso creada exitosamente',
+    description: 'Fuente de gastos creada exitosamente',
   })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
-  async create(@Body() createFuentesIngresoDto: CreateFuentesIngresosDto) {
+  async create(@Body() createFuentesGastosDto: CreateFuentesGastosDto) {
     try {
-      const data = await this.fuentesIngresosService.create({
-        createFuentesIngresoDto,
+      const data = await this.fuentesGastosService.create({
+        createFuentesGastosDto,
       });
 
       return {
@@ -87,36 +84,36 @@ export class FuentesIngresosController {
       throw new InternalServerErrorException(
         error instanceof Error
           ? error.message
-          : 'Ocurrió un error al crear la fuente de ingreso',
+          : 'Ocurrió un error al crear la fuente de gastos',
       );
     }
   }
 
   @Put(':id')
   @ApiOperation({
-    summary: 'Actualizar una fuente de ingreso',
+    summary: 'Actualizar una fuente de gastos',
     description:
-      'Actualiza los datos de una fuente de ingreso existente por su ID',
+      'Actualiza los datos de una fuente de gastos existente por su ID',
   })
   @ApiParam({
     name: 'id',
-    description: 'ID de la fuente de ingreso',
+    description: 'ID de la fuente de gastos',
     required: true,
     type: String,
   })
   @ApiResponse({
     status: 200,
-    description: 'Fuente de ingreso actualizada exitosamente',
+    description: 'Fuente de gastos actualizada exitosamente',
   })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
   async updateById(
     @Param('id') id: string,
-    @Body() updateFuentesIngresosDto: UpdateFuentesIngresosDto,
+    @Body() updateFuentesGastosDto: UpdateFuentesGastosDto,
   ) {
     try {
-      const data = await this.fuentesIngresosService.updateById({
+      const data = await this.fuentesGastosService.updateById({
         id,
-        updateFuentesIngresosDto,
+        updateFuentesGastosDto,
       });
 
       return {
@@ -127,30 +124,30 @@ export class FuentesIngresosController {
       throw new InternalServerErrorException(
         error instanceof Error
           ? error.message
-          : 'Ocurrió un error al actualizar la fuente de ingreso',
+          : 'Ocurrió un error al actualizar la fuente de gastos',
       );
     }
   }
 
   @Delete(':id')
   @ApiOperation({
-    summary: 'Eliminar una fuente de ingreso',
-    description: 'Elimina una fuente de ingreso existente por su ID ',
+    summary: 'Eliminar una fuente de gastos',
+    description: 'Elimina una fuente de gastos existente por su ID ',
   })
   @ApiParam({
     name: 'id',
-    description: 'ID de la fuente de ingreso',
+    description: 'ID de la fuente de gastos',
     required: true,
     type: String,
   })
   @ApiResponse({
     status: 200,
-    description: 'Fuente de ingreso eliminada exitosamente',
+    description: 'Fuente de gastos eliminada exitosamente',
   })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
   async deleteById(@Param('id') id: string) {
     try {
-      const data = await this.fuentesIngresosService.deleteById({ id });
+      const data = await this.fuentesGastosService.deleteById({ id });
 
       return {
         statusCode: 200,
@@ -163,7 +160,7 @@ export class FuentesIngresosController {
       throw new InternalServerErrorException(
         error instanceof Error
           ? error.message
-          : 'Ocurrió un error al eliminar la fuente de ingreso',
+          : 'Ocurrió un error al eliminar la fuente de gastos',
       );
     }
   }
