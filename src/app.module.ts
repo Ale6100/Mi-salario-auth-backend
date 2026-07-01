@@ -2,13 +2,14 @@
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ConceptosGastosModule } from './conceptos_gastos/conceptos_gastos.module';
 import { ConceptosIngresosModule } from './conceptos_ingresos/conceptos_ingresos.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { FondoEmergenciaModule } from './fondo_emergencia/fondo_emergencia.module';
 import { FuentesGastosModule } from './fuentes_gastos/fuentes_gastos.module';
 import { FuentesIngresosModule } from './fuentes_ingresos/fuentes_ingresos.module';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ConceptosGastosModule } from './conceptos_gastos/conceptos_gastos.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ConceptosGastosModule } from './conceptos_gastos/conceptos_gastos.modul
     ConceptosIngresosModule,
     FuentesGastosModule,
     ConceptosGastosModule,
+    FondoEmergenciaModule,
   ],
   controllers: [AppController],
   providers: [AppService],

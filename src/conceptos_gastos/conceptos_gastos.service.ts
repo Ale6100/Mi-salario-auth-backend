@@ -7,7 +7,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { PatchMontoRealConceptosGastosDto } from './dto/patch-monto_real-conceptos_gastos..dto';
-import { QuerySubDto } from '../utils/query.dto';
+import { QuerySubPeriodoDto } from '../utils/query.dto';
 import { UpdateConceptosGastosDto } from './dto/update-conceptos_gastos.dto';
 
 type ConceptosGastosConColumna = ConceptosGastos & { columnaMonto: number };
@@ -23,9 +23,16 @@ export class ConceptosGastosService {
 
   async findAllBySub({
     sub,
-  }: QuerySubDto): Promise<ConceptosGastosConColumna[]> {
+    periodo,
+  }: QuerySubPeriodoDto): Promise<ConceptosGastosConColumna[]> {
+    const filter: Record<string, string | undefined> = { sub };
+
+    if (periodo) {
+      filter.periodo = periodo;
+    }
+
     const conceptos = await this.conceptosGastosModel
-      .find({ sub })
+      .find(filter)
       .populate('id_fuente_gasto')
       .exec();
 

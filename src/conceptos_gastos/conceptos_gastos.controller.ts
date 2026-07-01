@@ -19,7 +19,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { QuerySubDto } from '../utils/query.dto';
+import { QuerySubPeriodoDto } from '../utils/query.dto';
 import { ConceptosGastosService } from './conceptos_gastos.service';
 import { CreateConceptosGastosDto } from './dto/create-conceptos_gastos.dto';
 import { UpdateConceptosGastosDto } from './dto/update-conceptos_gastos.dto';
@@ -44,11 +44,21 @@ export class ConceptosGastosController {
     required: true,
     type: String,
   })
+  @ApiQuery({
+    name: 'periodo',
+    description:
+      'Período en formato YYYY-MM para filtrar los conceptos (ej. 2026-06)',
+    required: false,
+    type: String,
+  })
   @ApiResponse({ status: 200, description: 'Lista de conceptos de gasto' })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
-  async findAllBySub(@Query() { sub }: QuerySubDto) {
+  async findAllBySub(@Query() { sub, periodo }: QuerySubPeriodoDto) {
     try {
-      const data = await this.conceptosGastosService.findAllBySub({ sub });
+      const data = await this.conceptosGastosService.findAllBySub({
+        sub,
+        periodo,
+      });
 
       return {
         statusCode: 200,
