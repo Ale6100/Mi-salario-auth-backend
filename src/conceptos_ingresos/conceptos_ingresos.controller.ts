@@ -18,7 +18,7 @@ import {
 } from '@nestjs/common';
 import { ConceptosIngresosService } from './conceptos_ingresos.service';
 import { CreateConceptosIngresosDto } from './dto/create-conceptos_ingresos.dto';
-import { QuerySubDto } from '../utils/query.dto';
+import { QuerySubPeriodoDto } from '../utils/query.dto';
 import { UpdateConceptosIngresosDto } from './dto/update-conceptos_ingresos.dto';
 
 @ApiTags('Conceptos de Ingreso')
@@ -40,11 +40,21 @@ export class ConceptosIngresosController {
     required: true,
     type: String,
   })
+  @ApiQuery({
+    name: 'periodo',
+    description:
+      'Período en formato YYYY-MM para filtrar los conceptos (ej. 2026-06)',
+    required: false,
+    type: String,
+  })
   @ApiResponse({ status: 200, description: 'Lista de conceptos de ingreso' })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
-  async findAllBySub(@Query() { sub }: QuerySubDto) {
+  async findAllBySub(@Query() { sub, periodo }: QuerySubPeriodoDto) {
     try {
-      const data = await this.conceptosIngresosService.findAllBySub({ sub });
+      const data = await this.conceptosIngresosService.findAllBySub({
+        sub,
+        periodo,
+      });
 
       return {
         statusCode: 200,
@@ -70,11 +80,11 @@ export class ConceptosIngresosController {
     description: 'Concepto de ingreso creado exitosamente',
   })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
-  async createBySourceSub(
+  async createBySource(
     @Body() createConceptosIngresosDto: CreateConceptosIngresosDto,
   ) {
     try {
-      const data = await this.conceptosIngresosService.createBySourceSub({
+      const data = await this.conceptosIngresosService.createBySource({
         createConceptosIngresosDto,
       });
 
@@ -99,7 +109,7 @@ export class ConceptosIngresosController {
   })
   @ApiParam({
     name: 'id',
-    description: 'ID del concepto de ingreso',
+    description: 'ID del concepto de ingreso a actualizar',
     required: true,
     type: String,
   })

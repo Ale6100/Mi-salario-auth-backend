@@ -5,7 +5,7 @@ import { CreateConceptosIngresosDto } from './dto/create-conceptos_ingresos.dto'
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { QuerySubDto } from '../utils/query.dto';
+import { QuerySubPeriodoDto } from '../utils/query.dto';
 import { UpdateConceptosIngresosDto } from './dto/update-conceptos_ingresos.dto';
 
 @Injectable()
@@ -15,14 +15,23 @@ export class ConceptosIngresosService {
     readonly conceptosIngresosModel: Model<ConceptosIngresos>,
   ) {}
 
-  async findAllBySub({ sub }: QuerySubDto): Promise<ConceptosIngresos[]> {
+  async findAllBySub({
+    sub,
+    periodo,
+  }: QuerySubPeriodoDto): Promise<ConceptosIngresos[]> {
+    const filter: Record<string, string | undefined> = { sub };
+
+    if (periodo) {
+      filter.periodo = periodo;
+    }
+
     return this.conceptosIngresosModel
-      .find({ sub })
+      .find(filter)
       .populate('id_fuente_ingreso')
       .exec();
   }
 
-  async createBySourceSub({
+  async createBySource({
     createConceptosIngresosDto,
   }: {
     createConceptosIngresosDto: CreateConceptosIngresosDto;

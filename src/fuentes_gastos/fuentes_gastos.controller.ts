@@ -24,7 +24,7 @@ import { FuentesGastosService } from './fuentes_gastos.service';
 import { QuerySubDto } from '../utils/query.dto';
 import { UpdateFuentesGastosDto } from './dto/update-fuentes_gastos.dto';
 
-@ApiTags('Conceptos de Gastos')
+@ApiTags('Fuentes de Gastos')
 @Controller('fuentes-gastos')
 export class FuentesGastosController {
   constructor(private readonly fuentesGastosService: FuentesGastosService) {}
@@ -143,6 +143,10 @@ export class FuentesGastosController {
   @ApiResponse({
     status: 200,
     description: 'Fuente de gastos eliminada exitosamente',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Conflicto: la fuente de gastos tiene conceptos asociados',
   })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
   async deleteById(@Param('id') id: string) {

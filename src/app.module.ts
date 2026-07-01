@@ -8,6 +8,7 @@ import { FuentesGastosModule } from './fuentes_gastos/fuentes_gastos.module';
 import { FuentesIngresosModule } from './fuentes_ingresos/fuentes_ingresos.module';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ConceptosGastosModule } from './conceptos_gastos/conceptos_gastos.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     FuentesIngresosModule,
     ConceptosIngresosModule,
     FuentesGastosModule,
+    ConceptosGastosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

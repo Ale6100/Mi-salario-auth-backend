@@ -1,7 +1,7 @@
 // src\utils\query.dto.ts
 
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString, Matches } from 'class-validator';
 
 export class QuerySubDto {
   @ApiProperty({
@@ -10,4 +10,19 @@ export class QuerySubDto {
   })
   @IsString()
   readonly sub!: string;
+}
+
+export class QuerySubPeriodoDto extends QuerySubDto {
+  @ApiPropertyOptional({
+    description:
+      'Período en formato YYYY-MM para filtrar los conceptos (ej. 2026-06)',
+    example: '2026-06',
+    pattern: '^\\d{4}-(0[1-9]|1[0-2])$',
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{4}-(0[1-9]|1[0-2])$/, {
+    message: 'El período debe cumplir con el formato YYYY-MM (ej. 2026-06)',
+  })
+  readonly periodo?: string;
 }

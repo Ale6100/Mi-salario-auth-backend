@@ -147,6 +147,10 @@ export class FuentesIngresosController {
     status: 200,
     description: 'Fuente de ingreso eliminada exitosamente',
   })
+  @ApiResponse({
+    status: 409,
+    description: 'Conflicto: la fuente de ingreso tiene conceptos asociados',
+  })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
   async deleteById(@Param('id') id: string) {
     try {
