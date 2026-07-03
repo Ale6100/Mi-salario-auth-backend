@@ -27,6 +27,8 @@ async function bootstrap() {
 
   const isDevelopment = process.env.NODE_ENV === 'development';
 
+  const publicPaths = ['/cron'];
+
   if (!isDevelopment) {
     const jwtCheck = auth({
       audience,
@@ -38,6 +40,11 @@ async function bootstrap() {
       if (req.method === 'OPTIONS') {
         return next();
       }
+
+      if (publicPaths.some((path) => req.path.startsWith(path))) {
+        return next();
+      }
+
       jwtCheck(req, res, next);
     });
   }

@@ -2,6 +2,8 @@
 
 Sitio y README en construcción
 
+[![Code Quality Check](https://github.com/Ale6100/Mi-salario-auth-backend/actions/workflows/lint.yml/badge.svg)](https://github.com/Ale6100/Mi-salario-auth-backend/actions/workflows/lint.yml)
+
 ```bash
 AUTH_ISSUER_BASE_URL = X # issuer base de Auth0
 AUTH_AUDIENCE = X # audience de Auth0
