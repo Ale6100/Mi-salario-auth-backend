@@ -51,6 +51,33 @@ export class CronService {
 
     const fondo = await this.fondoEmergenciaModel.findOne({ sub }).exec();
 
+    const gastosPendientesDocs = await this.conceptosGastosModel
+      .find({ sub, periodo, monto_real: { $exists: false } })
+      .populate('id_fuente_gasto')
+      .exec();
+
+    const gastosPendientes = gastosPendientesDocs.map((g) => {
+      const gObj = g.toObject();
+      const fuente = gObj.id_fuente_gasto as unknown as {
+        nombre: string;
+      };
+
+      let columnaMonto = 0;
+      if (gObj.monto_estimado !== undefined && gObj.monto_estimado !== -1) {
+        columnaMonto = gObj.monto_estimado;
+      } else if (
+        gObj.porcentaje_total !== undefined &&
+        gObj.porcentaje_total !== -1
+      ) {
+        columnaMonto = (gObj.porcentaje_total / 100) * ingresos;
+      }
+
+      return {
+        nombre: fuente.nombre,
+        columnaMonto,
+      };
+    });
+
     const excedente = ingresos - gastos;
     const aporteAlFondoEmergencia =
       fondo?.porcentaje_total && fondo.porcentaje_total > 0
@@ -64,13 +91,9 @@ export class CronService {
     const round = (n: number) => Math.round(n * 100) / 100;
 
     return {
-      resumenDe: 'mes actual',
-      ingresos: round(ingresos),
-      gastos: round(gastos),
-      aporteAlFondoEmergencia: round(aporteAlFondoEmergencia),
-      balanceDelMes: round(balanceDelMes),
       gastoDiario: round(gastoDiario),
       balanceAlDiaDeHoy: round(balanceAlDiaDeHoy),
+      gastosPendientes,
     };
   }
 }
