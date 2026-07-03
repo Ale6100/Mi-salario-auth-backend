@@ -64,15 +64,13 @@ export class CronService {
     const round = (n: number) => Math.round(n * 100) / 100;
 
     return {
-      data: {
-        resumenDe: 'mes actual',
-        ingresos: round(ingresos),
-        gastos: round(gastos),
-        aporteAlFondoEmergencia: round(aporteAlFondoEmergencia),
-        balanceDelMes: round(balanceDelMes),
-        gastoDiario: round(gastoDiario),
-        balanceAlDiaDeHoy: round(balanceAlDiaDeHoy),
-      },
+      resumenDe: 'mes actual',
+      ingresos: round(ingresos),
+      gastos: round(gastos),
+      aporteAlFondoEmergencia: round(aporteAlFondoEmergencia),
+      balanceDelMes: round(balanceDelMes),
+      gastoDiario: round(gastoDiario),
+      balanceAlDiaDeHoy: round(balanceAlDiaDeHoy),
     };
   }
 }
