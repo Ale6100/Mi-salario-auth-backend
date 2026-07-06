@@ -47,6 +47,14 @@ export class FondoEmergencia {
     max: [100, 'El valor del porcentaje total no puede ser mayor a 100'],
   })
   porcentaje_total!: number; // Un porcentaje de X% implicará que la plata reservada para el fondo es de un X% mensual
+
+  @Prop({
+    type: Number,
+    required: false,
+    default: null,
+    min: [0, 'El saldo real no puede ser menor a 0'],
+  })
+  saldo_real!: number | null;
 }
 
 export const FondoEmergenciaSchema =

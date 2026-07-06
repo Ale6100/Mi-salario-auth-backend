@@ -8,6 +8,7 @@ import {
   IsString,
   Max,
   Min,
+  ValidateIf,
 } from 'class-validator';
 
 export class UpdateFondoEmergenciaDto {
@@ -57,4 +58,14 @@ export class UpdateFondoEmergenciaDto {
   @Min(0, { message: 'El porcentaje no puede ser menor a 0' })
   @Max(100, { message: 'El porcentaje no puede ser mayor a 100' })
   readonly porcentaje_total!: number;
+
+  @ApiProperty({
+    description: 'Saldo real disponible del usuario en el día de hoy',
+    required: false,
+  })
+  @IsOptional()
+  @ValidateIf((o: { saldo_real?: number | null }) => o.saldo_real != null)
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0, { message: 'El saldo real no puede ser menor a 0' })
+  readonly saldo_real!: number | null;
 }

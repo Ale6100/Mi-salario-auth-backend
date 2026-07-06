@@ -85,8 +85,19 @@ export class CronService {
         : 0;
 
     const balanceDelMes = ingresos - gastos - aporteAlFondoEmergencia;
-    const gastoDiario = daysInMonth > 0 ? balanceDelMes / daysInMonth : 0;
-    const balanceAlDiaDeHoy = balanceDelMes - gastoDiario * currentDay;
+    const remainingDays = daysInMonth - currentDay + 1;
+    const saldoReal = fondo?.saldo_real ?? null;
+    const usandoSaldoReal = saldoReal != null && saldoReal >= 0;
+
+    const gastoDiario = usandoSaldoReal
+      ? saldoReal / remainingDays
+      : daysInMonth > 0
+        ? balanceDelMes / daysInMonth
+        : 0;
+
+    const balanceAlDiaDeHoy = usandoSaldoReal
+      ? saldoReal
+      : balanceDelMes - gastoDiario * currentDay;
 
     const round = (n: number) => Math.round(n * 100) / 100;
 
