@@ -23,7 +23,7 @@ import { QuerySubPeriodoDto } from '../utils/query.dto';
 import { ConceptosGastosService } from './conceptos_gastos.service';
 import { CreateConceptosGastosDto } from './dto/create-conceptos_gastos.dto';
 import { UpdateConceptosGastosDto } from './dto/update-conceptos_gastos.dto';
-import { PatchMontoRealConceptosGastosDto } from './dto/patch-monto_real-conceptos_gastos..dto';
+import { PatchPagadoConceptosGastosDto } from './dto/patch-pagado-conceptos_gastos.dto';
 
 @ApiTags('Conceptos de Gasto')
 @Controller('conceptos-gastos')
@@ -146,29 +146,29 @@ export class ConceptosGastosController {
 
   @Patch(':id')
   @ApiOperation({
-    summary: 'Actualizar el monto real de un concepto de gasto',
+    summary: 'Marcar un concepto de gasto como pagado',
     description:
-      'Actualiza el monto real de un concepto de gasto existente por su ID',
+      'Marca un concepto de gasto como pagado, actualizando opcionalmente el monto final y aclaración',
   })
   @ApiParam({
     name: 'id',
-    description: 'ID del concepto de gasto a actualizar',
+    description: 'ID del concepto de gasto a marcar como pagado',
     required: true,
     type: String,
   })
   @ApiResponse({
     status: 200,
-    description: 'Monto real del concepto de gasto actualizado exitosamente',
+    description: 'Concepto de gasto marcado como pagado exitosamente',
   })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
-  async patchMontoRealById(
+  async patchPagadoById(
     @Param('id') id: string,
-    @Body() patchMontoRealConceptosGastosDto: PatchMontoRealConceptosGastosDto,
+    @Body() patchPagadoConceptosGastosDto: PatchPagadoConceptosGastosDto,
   ) {
     try {
-      const data = await this.conceptosGastosService.patchMontoRealById({
+      const data = await this.conceptosGastosService.patchPagadoById({
         id,
-        patchMontoRealConceptosGastosDto,
+        patchPagadoConceptosGastosDto,
       });
 
       return {
@@ -179,7 +179,7 @@ export class ConceptosGastosController {
       throw new InternalServerErrorException(
         error instanceof Error
           ? error.message
-          : 'Ocurrió un error al actualizar el monto real del concepto de gasto',
+          : 'Ocurrió un error al marcar el concepto de gasto como pagado',
       );
     }
   }

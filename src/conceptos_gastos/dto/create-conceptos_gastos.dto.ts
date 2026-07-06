@@ -2,6 +2,7 @@
 
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsBoolean,
   IsMongoId,
   IsNumber,
   IsOptional,
@@ -40,26 +41,46 @@ export class CreateConceptosGastosDto {
 
   @ApiProperty({
     description:
-      'Monto o valor numérico estimado del gasto. Si es -1 o indefinido, el front considera que se usa el porcentaje_total. Solo se acepta -1 (sentinela) o valores >= 0',
+      'Valor del gasto. Si es -1 o se omite, se usa el porcentaje_total. Solo se acepta -1 (sentinela) o valores >= 0',
   })
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsOptional()
   @IsMinusOneOrPositive({
     message:
-      'El monto estimado debe ser -1 (para usar porcentaje) o un valor mayor o igual a 0',
+      'El monto debe ser -1 (para usar porcentaje) o un valor mayor o igual a 0',
   })
-  readonly monto_estimado!: number;
+  readonly monto!: number;
 
   @ApiProperty({
     description:
-      'Porcentaje total del gasto (debe ser un número entre 0 y 100). Si es -1 o indefinido, el front considera que se usa el monto_estimado. Solo se acepta -1 (sentinela) o valores >= 0',
+      'Porcentaje total del gasto (debe ser un número entre 0 y 100). Si es -1 o se omite, se usa el monto. Solo se acepta -1 (sentinela) o valores >= 0',
   })
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsOptional()
   @IsMinusOneOrPositive({
     message:
-      'El porcentaje total debe ser -1 (para usar monto estimado) o un valor entre 0 y 100',
+      'El porcentaje total debe ser -1 (para usar monto) o un valor entre 0 y 100',
   })
   @Max(100, { message: 'El porcentaje no puede ser mayor a 100' })
   readonly porcentaje_total!: number;
+
+  @ApiProperty({
+    description: 'Indica si el gasto está pagado/confirmado. Por defecto false',
+    required: false,
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  readonly pagado?: boolean;
+
+  @ApiProperty({
+    description: 'Aclaración o nota adicional sobre el gasto (opcional)',
+    required: false,
+  })
+  @IsString()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
+  @IsOptional()
+  readonly aclaracion?: string;
 }

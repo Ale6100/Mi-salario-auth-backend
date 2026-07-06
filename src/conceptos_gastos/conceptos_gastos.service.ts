@@ -6,11 +6,9 @@ import { CreateConceptosGastosDto } from './dto/create-conceptos_gastos.dto';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { PatchMontoRealConceptosGastosDto } from './dto/patch-monto_real-conceptos_gastos..dto';
+import { PatchPagadoConceptosGastosDto } from './dto/patch-pagado-conceptos_gastos.dto';
 import { QuerySubPeriodoDto } from '../utils/query.dto';
 import { UpdateConceptosGastosDto } from './dto/update-conceptos_gastos.dto';
-
-type ConceptosGastosConColumna = ConceptosGastos & { columnaMonto: number };
 
 @Injectable()
 export class ConceptosGastosService {
@@ -24,7 +22,7 @@ export class ConceptosGastosService {
   async findAllBySub({
     sub,
     periodo,
-  }: QuerySubPeriodoDto): Promise<ConceptosGastosConColumna[]> {
+  }: QuerySubPeriodoDto): Promise<ConceptosGastos[]> {
     const filter: Record<string, string | undefined> = { sub };
 
     if (periodo) {
@@ -50,21 +48,21 @@ export class ConceptosGastosService {
 
     return conceptos.map((c) => {
       const cObj = c.toObject();
-      const montoEst = cObj.monto_estimado;
-      const porcentaje = cObj.porcentaje_total;
 
-      let columnaMonto: number;
-
-      if (montoEst !== undefined && montoEst !== -1) {
-        columnaMonto = montoEst;
-      } else if (porcentaje === undefined || porcentaje === -1) {
-        columnaMonto = 0;
-      } else {
-        const totalIngresos = totalIngresosPorPeriodo[cObj.periodo] ?? 0;
-        columnaMonto = (porcentaje / 100) * totalIngresos;
+      let monto = cObj.monto;
+      if (monto === undefined || monto === -1) {
+        if (
+          cObj.porcentaje_total !== undefined &&
+          cObj.porcentaje_total !== -1
+        ) {
+          const totalIngresos = totalIngresosPorPeriodo[cObj.periodo] ?? 0;
+          monto = (cObj.porcentaje_total / 100) * totalIngresos;
+        } else {
+          monto = 0;
+        }
       }
 
-      return { ...cObj, columnaMonto };
+      return { ...cObj, monto };
     });
   }
 
@@ -93,17 +91,19 @@ export class ConceptosGastosService {
       .exec();
   }
 
-  async patchMontoRealById({
+  async patchPagadoById({
     id,
-    patchMontoRealConceptosGastosDto,
+    patchPagadoConceptosGastosDto,
   }: {
     id: string;
-    patchMontoRealConceptosGastosDto: PatchMontoRealConceptosGastosDto;
+    patchPagadoConceptosGastosDto: PatchPagadoConceptosGastosDto;
   }): Promise<ConceptosGastos | null> {
     return this.conceptosGastosModel
-      .findByIdAndUpdate(id, patchMontoRealConceptosGastosDto, {
-        returnDocument: 'after',
-      })
+      .findByIdAndUpdate(
+        id,
+        { ...patchPagadoConceptosGastosDto, pagado: true },
+        { returnDocument: 'after' },
+      )
       .exec();
   }
 

@@ -35,24 +35,24 @@ export class CronService {
 
     let gastos = 0;
     for (const gasto of gastosDocs) {
-      let columnaMonto = 0;
+      let montoCalculado = 0;
 
-      if (gasto.monto_estimado !== undefined && gasto.monto_estimado !== -1) {
-        columnaMonto = gasto.monto_estimado;
+      if (gasto.monto !== undefined && gasto.monto !== -1) {
+        montoCalculado = gasto.monto;
       } else if (
         gasto.porcentaje_total !== undefined &&
         gasto.porcentaje_total !== -1
       ) {
-        columnaMonto = (gasto.porcentaje_total / 100) * ingresos;
+        montoCalculado = (gasto.porcentaje_total / 100) * ingresos;
       }
 
-      gastos += columnaMonto;
+      gastos += montoCalculado;
     }
 
     const fondo = await this.fondoEmergenciaModel.findOne({ sub }).exec();
 
     const gastosPendientesDocs = await this.conceptosGastosModel
-      .find({ sub, periodo, monto_real: { $exists: false } })
+      .find({ sub, periodo, pagado: { $ne: true } })
       .populate('id_fuente_gasto')
       .exec();
 
@@ -62,19 +62,19 @@ export class CronService {
         nombre: string;
       };
 
-      let columnaMonto = 0;
-      if (gObj.monto_estimado !== undefined && gObj.monto_estimado !== -1) {
-        columnaMonto = gObj.monto_estimado;
+      let montoCalculado = 0;
+      if (gObj.monto !== undefined && gObj.monto !== -1) {
+        montoCalculado = gObj.monto;
       } else if (
         gObj.porcentaje_total !== undefined &&
         gObj.porcentaje_total !== -1
       ) {
-        columnaMonto = (gObj.porcentaje_total / 100) * ingresos;
+        montoCalculado = (gObj.porcentaje_total / 100) * ingresos;
       }
 
       return {
         nombre: fuente.nombre,
-        columnaMonto,
+        monto: montoCalculado,
       };
     });
 

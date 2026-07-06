@@ -40,11 +40,10 @@ export class ConceptosGastos {
     required: false,
     validate: {
       validator: (v: number) => v === -1 || v >= 0,
-      message:
-        'El monto estimado debe ser -1 (sentinela) o un valor mayor o igual a 0',
+      message: 'El monto debe ser -1 (sentinela) o un valor mayor o igual a 0',
     },
   })
-  monto_estimado!: number;
+  monto!: number; // Si es -1 se usa el porcentaje_total
 
   @Prop({
     type: Number,
@@ -56,14 +55,13 @@ export class ConceptosGastos {
     },
     max: [100, 'El valor del porcentaje total no puede ser mayor a 100'],
   })
-  porcentaje_total!: number; // Un porcentaje de X% implicará que el monto estimado sea un X% de los ingresos totales de este mes
+  porcentaje_total!: number; // Un porcentaje de X% implicará que el monto sea un X% de los ingresos totales de este mes
 
   @Prop({
-    type: Number,
-    required: false,
-    min: [0, 'El valor del monto real no puede ser menor a 0'],
+    type: Boolean,
+    default: false,
   })
-  monto_real!: number; // Se considera pagado cuando tiene un valor
+  pagado!: boolean; // Indica si el gasto está pagado/confirmado
 
   @Prop({
     type: String,
