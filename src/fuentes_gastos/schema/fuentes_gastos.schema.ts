@@ -32,6 +32,13 @@ export class FuentesGastos {
     ],
   })
   color!: string; // Color en hex "#XXXXXX"
+
+  @Prop({
+    type: Boolean,
+    required: false,
+    default: false,
+  })
+  es_indispensable!: boolean;
 }
 
 export const FuentesGastosSchema = SchemaFactory.createForClass(FuentesGastos);

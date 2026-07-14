@@ -68,4 +68,17 @@ export class UpdateFondoEmergenciaDto {
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0, { message: 'El saldo real no puede ser menor a 0' })
   readonly saldo_real!: number | null;
+
+  @ApiProperty({
+    description:
+      'Gastos adicionales mensuales que no se registran como fuente de gastos pero deberían considerarse para el cálculo del fondo de emergencia (ej: alquiler que paga un familiar)',
+    required: false,
+    default: 0,
+  })
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @IsOptional()
+  @Min(0, {
+    message: 'El valor de gastos adicionales no puede ser menor a 0',
+  })
+  readonly gastos_adicionales!: number;
 }

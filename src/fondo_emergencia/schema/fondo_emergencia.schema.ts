@@ -55,6 +55,14 @@ export class FondoEmergencia {
     min: [0, 'El saldo real no puede ser menor a 0'],
   })
   saldo_real!: number | null;
+
+  @Prop({
+    type: Number,
+    required: false,
+    default: 0,
+    min: [0, 'El valor de gastos adicionales no puede ser menor a 0'],
+  })
+  gastos_adicionales!: number;
 }
 
 export const FondoEmergenciaSchema =

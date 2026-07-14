@@ -1,7 +1,7 @@
 // src\fuentes_gastos\dto\create-fuentes_gastos.dto.ts
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, Matches } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreateFuentesGastosDto {
@@ -31,4 +31,14 @@ export class CreateFuentesGastosDto {
     message: 'El formato de color debe ser #XXXXXX o #XXXXXXXX',
   })
   readonly color!: string;
+
+  @ApiProperty({
+    description:
+      'Indica si la fuente de gasto es indispensable y debe considerarse para el cálculo del fondo de emergencia',
+    required: false,
+    default: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  readonly es_indispensable?: boolean;
 }
