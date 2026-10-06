@@ -5,7 +5,6 @@ import { AppService } from './app.service';
 import { ConceptosGastosModule } from './conceptos_gastos/conceptos_gastos.module';
 import { ConceptosIngresosModule } from './conceptos_ingresos/conceptos_ingresos.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { CronModule } from './cron/cron.module';
 import { FondoEmergenciaModule } from './fondo_emergencia/fondo_emergencia.module';
 import { FuentesGastosModule } from './fuentes_gastos/fuentes_gastos.module';
 import { FuentesIngresosModule } from './fuentes_ingresos/fuentes_ingresos.module';
@@ -22,7 +21,6 @@ import { MongooseModule } from '@nestjs/mongoose';
         uri: configService.get<string>('MONGO_URI'),
       }),
     }),
-    CronModule,
     FuentesIngresosModule,
     ConceptosIngresosModule,
     FuentesGastosModule,

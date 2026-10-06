@@ -1,18 +1,9 @@
 // src\utils\query.dto.ts
 
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, Matches } from 'class-validator';
 
-export class QuerySubDto {
-  @ApiProperty({
-    description: 'Identificador único del usuario (Auth0 sub)',
-    example: 'auth0|123456789',
-  })
-  @IsString()
-  readonly sub!: string;
-}
-
-export class QuerySubPeriodoDto extends QuerySubDto {
+export class QueryPeriodoDto {
   @ApiPropertyOptional({
     description:
       'Período en formato YYYY-MM para filtrar los conceptos (ej. 2026-06)',

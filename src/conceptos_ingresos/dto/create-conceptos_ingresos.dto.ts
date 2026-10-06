@@ -6,12 +6,6 @@ import { Transform } from 'class-transformer';
 
 export class CreateConceptosIngresosDto {
   @ApiProperty({
-    description: 'Identificador único del usuario (sub)',
-  })
-  @IsString()
-  readonly sub!: string;
-
-  @ApiProperty({
     description:
       'Identificador único de la fuente de ingreso (Mongoose ObjectId)',
   })

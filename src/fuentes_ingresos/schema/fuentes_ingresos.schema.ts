@@ -25,6 +25,7 @@ export class FuentesIngresos {
   @Prop({
     type: Boolean,
     required: true,
+    default: true,
   })
   activo!: boolean;
 

@@ -1,12 +1,15 @@
 // src\fuentes_ingresos\fuentes_ingresos.service.ts
 
 import { ConceptosIngresos } from '../conceptos_ingresos/schema/conceptos_ingresos.schema';
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateFuentesIngresosDto } from './dto/create-fuentes_ingresos.dto';
 import { FuentesIngresos } from './schema/fuentes_ingresos.schema';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { QuerySubDto } from '../utils/query.dto';
+import { Model, Types } from 'mongoose';
 import { UpdateFuentesIngresosDto } from './dto/update-fuentes_ingresos.dto';
 
 @Injectable()
@@ -18,38 +21,64 @@ export class FuentesIngresosService {
     readonly conceptosIngresosModel: Model<ConceptosIngresos>,
   ) {}
 
-  async findAllBySub({ sub }: QuerySubDto): Promise<FuentesIngresos[]> {
+  async findAllBySub({ sub }: { sub: string }): Promise<FuentesIngresos[]> {
     return this.fuentesIngresosModel.find({ sub }).exec();
   }
 
   async create({
+    sub,
     createFuentesIngresoDto,
   }: {
+    sub: string;
     createFuentesIngresoDto: CreateFuentesIngresosDto;
   }): Promise<FuentesIngresos> {
-    const newFuenteIngreso = new this.fuentesIngresosModel(
-      createFuentesIngresoDto,
-    );
+    const newFuenteIngreso = new this.fuentesIngresosModel({
+      ...createFuentesIngresoDto,
+      sub,
+    });
     return newFuenteIngreso.save();
   }
 
   async updateById({
+    sub,
     id,
     updateFuentesIngresosDto,
   }: {
-    id: string;
+    sub: string;
+    id: Types.ObjectId;
     updateFuentesIngresosDto: UpdateFuentesIngresosDto;
-  }): Promise<FuentesIngresos | null> {
-    return this.fuentesIngresosModel
-      .findByIdAndUpdate(id, updateFuentesIngresosDto, {
+  }): Promise<FuentesIngresos> {
+    const fuente = await this.fuentesIngresosModel
+      .findOneAndUpdate({ _id: id, sub }, updateFuentesIngresosDto, {
         returnDocument: 'after',
+        runValidators: true,
       })
       .exec();
+
+    if (!fuente) {
+      throw new NotFoundException('No se encontró la fuente de ingreso');
+    }
+
+    return fuente;
   }
 
-  async deleteById({ id }: { id: string }): Promise<FuentesIngresos | null> {
+  async deleteById({
+    sub,
+    id,
+  }: {
+    sub: string;
+    id: Types.ObjectId;
+  }): Promise<FuentesIngresos | null> {
+    const fuenteExiste = await this.fuentesIngresosModel
+      .exists({ _id: id, sub })
+      .exec();
+
+    if (!fuenteExiste) {
+      throw new NotFoundException('No se encontró la fuente de ingreso');
+    }
+
     const conceptosAsociados = await this.conceptosIngresosModel
-      .countDocuments({ id_fuente_ingreso: id })
+      .countDocuments({ id_fuente_ingreso: id, sub })
       .exec();
 
     if (conceptosAsociados > 0) {
@@ -58,6 +87,6 @@ export class FuentesIngresosService {
       );
     }
 
-    return this.fuentesIngresosModel.findByIdAndDelete(id).exec();
+    return this.fuentesIngresosModel.findOneAndDelete({ _id: id, sub }).exec();
   }
 }

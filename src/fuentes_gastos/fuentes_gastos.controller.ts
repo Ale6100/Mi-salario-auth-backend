@@ -1,28 +1,22 @@
 // src\fuentes_gastos\fuentes_gastos.controller.ts
 
-import {
-  ApiOperation,
-  ApiParam,
-  ApiQuery,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   Body,
   Controller,
   Delete,
   Get,
-  HttpException,
-  InternalServerErrorException,
   Param,
   Post,
   Put,
-  Query,
 } from '@nestjs/common';
 import { CreateFuentesGastosDto } from './dto/create-fuentes_gastos.dto';
 import { FuentesGastosService } from './fuentes_gastos.service';
-import { QuerySubDto } from '../utils/query.dto';
 import { UpdateFuentesGastosDto } from './dto/update-fuentes_gastos.dto';
+import { ParseObjectIdPipe } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
+import { UserSub } from '../utils/user-sub.decorator';
+import { toHttpException } from '../utils/http-error';
 
 @ApiTags('Fuentes de Gastos')
 @Controller('fuentes-gastos')
@@ -33,17 +27,11 @@ export class FuentesGastosController {
   @ApiOperation({
     summary: 'Obtener todas las fuentes de gastos por usuario',
     description:
-      'Devuelve todas las fuentes de gastos asociadas a un usuario (sub)',
-  })
-  @ApiQuery({
-    name: 'sub',
-    description: 'Identificador único del usuario (Auth0 sub)',
-    required: true,
-    type: String,
+      'Devuelve todas las fuentes de gastos asociadas al usuario autenticado',
   })
   @ApiResponse({ status: 200, description: 'Lista de fuentes de gastos' })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
-  async findAllBySub(@Query() { sub }: QuerySubDto) {
+  async findAllBySub(@UserSub() sub: string) {
     try {
       const data = await this.fuentesGastosService.findAllBySub({ sub });
 
@@ -52,10 +40,9 @@ export class FuentesGastosController {
         data,
       };
     } catch (error) {
-      throw new InternalServerErrorException(
-        error instanceof Error
-          ? error.message
-          : 'Ocurrió un error al obtener las fuentes de gastos',
+      throw toHttpException(
+        error,
+        'Ocurrió un error al obtener las fuentes de gastos',
       );
     }
   }
@@ -63,16 +50,20 @@ export class FuentesGastosController {
   @Post()
   @ApiOperation({
     summary: 'Crear una fuente de gastos',
-    description: 'Crea una nueva fuente de gastos para el usuario especificado',
+    description: 'Crea una nueva fuente de gastos para el usuario autenticado',
   })
   @ApiResponse({
     status: 201,
     description: 'Fuente de gastos creada exitosamente',
   })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
-  async create(@Body() createFuentesGastosDto: CreateFuentesGastosDto) {
+  async create(
+    @UserSub() sub: string,
+    @Body() createFuentesGastosDto: CreateFuentesGastosDto,
+  ) {
     try {
       const data = await this.fuentesGastosService.create({
+        sub,
         createFuentesGastosDto,
       });
 
@@ -81,10 +72,9 @@ export class FuentesGastosController {
         data,
       };
     } catch (error) {
-      throw new InternalServerErrorException(
-        error instanceof Error
-          ? error.message
-          : 'Ocurrió un error al crear la fuente de gastos',
+      throw toHttpException(
+        error,
+        'Ocurrió un error al crear la fuente de gastos',
       );
     }
   }
@@ -105,13 +95,16 @@ export class FuentesGastosController {
     status: 200,
     description: 'Fuente de gastos actualizada exitosamente',
   })
+  @ApiResponse({ status: 404, description: 'No se encontró el recurso' })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
   async updateById(
-    @Param('id') id: string,
+    @UserSub() sub: string,
+    @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
     @Body() updateFuentesGastosDto: UpdateFuentesGastosDto,
   ) {
     try {
       const data = await this.fuentesGastosService.updateById({
+        sub,
         id,
         updateFuentesGastosDto,
       });
@@ -121,10 +114,9 @@ export class FuentesGastosController {
         data,
       };
     } catch (error) {
-      throw new InternalServerErrorException(
-        error instanceof Error
-          ? error.message
-          : 'Ocurrió un error al actualizar la fuente de gastos',
+      throw toHttpException(
+        error,
+        'Ocurrió un error al actualizar la fuente de gastos',
       );
     }
   }
@@ -148,23 +140,23 @@ export class FuentesGastosController {
     status: 409,
     description: 'Conflicto: la fuente de gastos tiene conceptos asociados',
   })
+  @ApiResponse({ status: 404, description: 'No se encontró el recurso' })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
-  async deleteById(@Param('id') id: string) {
+  async deleteById(
+    @UserSub() sub: string,
+    @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
+  ) {
     try {
-      const data = await this.fuentesGastosService.deleteById({ id });
+      const data = await this.fuentesGastosService.deleteById({ sub, id });
 
       return {
         statusCode: 200,
         data,
       };
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new InternalServerErrorException(
-        error instanceof Error
-          ? error.message
-          : 'Ocurrió un error al eliminar la fuente de gastos',
+      throw toHttpException(
+        error,
+        'Ocurrió un error al eliminar la fuente de gastos',
       );
     }
   }

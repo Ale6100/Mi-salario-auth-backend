@@ -6,6 +6,10 @@ import {
 } from './schema/conceptos_ingresos.schema';
 import { ConceptosIngresosController } from './conceptos_ingresos.controller';
 import { ConceptosIngresosService } from './conceptos_ingresos.service';
+import {
+  FuentesIngresos,
+  FuentesIngresosSchema,
+} from '../fuentes_ingresos/schema/fuentes_ingresos.schema';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
@@ -13,6 +17,7 @@ import { MongooseModule } from '@nestjs/mongoose';
   imports: [
     MongooseModule.forFeature([
       { name: ConceptosIngresos.name, schema: ConceptosIngresosSchema },
+      { name: FuentesIngresos.name, schema: FuentesIngresosSchema },
     ]),
   ],
   controllers: [ConceptosIngresosController],

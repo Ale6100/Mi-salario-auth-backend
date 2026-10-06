@@ -15,12 +15,6 @@ import { IsMinusOneOrPositive } from '../../utils/validators';
 
 export class CreateConceptosGastosDto {
   @ApiProperty({
-    description: 'Identificador único del usuario (sub)',
-  })
-  @IsString()
-  readonly sub!: string;
-
-  @ApiProperty({
     description:
       'Identificador único de la fuente de gasto (Mongoose ObjectId)',
   })

@@ -6,12 +6,6 @@ import { Transform } from 'class-transformer';
 
 export class CreateFuentesGastosDto {
   @ApiProperty({
-    description: 'Identificador único del usuario (sub)',
-  })
-  @IsString()
-  readonly sub!: string;
-
-  @ApiProperty({
     description: 'Nombre de la fuente de gastos',
   })
   @IsString()

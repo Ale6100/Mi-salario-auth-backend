@@ -5,19 +5,12 @@ import {
   IsBoolean,
   IsNumber,
   IsOptional,
-  IsString,
   Max,
   Min,
   ValidateIf,
 } from 'class-validator';
 
 export class UpdateFondoEmergenciaDto {
-  @ApiProperty({
-    description: 'Identificador único del usuario (sub)',
-  })
-  @IsString()
-  readonly sub!: string;
-
   @ApiProperty({
     description:
       'Monto o valor numérico del fondo en pesos (debe ser mayor o igual a 0)',
@@ -41,7 +34,7 @@ export class UpdateFondoEmergenciaDto {
   @ApiProperty({
     description:
       'Indica si se deben incluir los dólares en el cálculo del fondo de emergencia',
-    default: true,
+    default: false,
     required: false,
   })
   @IsBoolean()

@@ -22,12 +22,9 @@ async function bootstrap() {
   app.enableCors({
     origin: [front1, front2].filter(Boolean),
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    credentials: true,
   });
 
   const isDevelopment = process.env.NODE_ENV === 'development';
-
-  const publicPaths = ['/cron'];
 
   if (!isDevelopment) {
     const jwtCheck = auth({
@@ -41,10 +38,6 @@ async function bootstrap() {
         return next();
       }
 
-      if (publicPaths.some((path) => req.path.startsWith(path))) {
-        return next();
-      }
-
       jwtCheck(req, res, next);
     });
   }
@@ -52,16 +45,21 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
+      whitelist: true,
     }),
   );
 
-  const config = new DocumentBuilder()
-    .setTitle('Mi Salario Auth')
-    .setDescription('Documentación de la API de Mi Salario Auth')
-    .setVersion('1.0')
-    .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory);
+  if (isDevelopment) {
+    const config = new DocumentBuilder()
+      .setTitle('Mi Salario Auth')
+      .setDescription('Documentación de la API de Mi Salario Auth')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .addSecurityRequirements('bearer')
+      .build();
+    const documentFactory = () => SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, documentFactory);
+  }
 
   await app.listen(process.env.PORT ?? 3000);
 }

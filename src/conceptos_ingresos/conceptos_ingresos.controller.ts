@@ -10,7 +10,6 @@ import {
   Controller,
   Delete,
   Get,
-  InternalServerErrorException,
   Param,
   Post,
   Put,
@@ -18,8 +17,13 @@ import {
 } from '@nestjs/common';
 import { ConceptosIngresosService } from './conceptos_ingresos.service';
 import { CreateConceptosIngresosDto } from './dto/create-conceptos_ingresos.dto';
-import { QuerySubPeriodoDto } from '../utils/query.dto';
+import { QueryPeriodoDto } from '../utils/query.dto';
 import { UpdateConceptosIngresosDto } from './dto/update-conceptos_ingresos.dto';
+import { ParseObjectIdPipe } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
+import { UserSub } from '../utils/user-sub.decorator';
+import { toHttpException } from '../utils/http-error';
+import { CopiarPeriodoDto } from '../utils/copiar-periodo.dto';
 
 @ApiTags('Conceptos de Ingreso')
 @Controller('conceptos-ingresos')
@@ -32,13 +36,7 @@ export class ConceptosIngresosController {
   @ApiOperation({
     summary: 'Obtener todos los conceptos de ingreso por usuario',
     description:
-      'Devuelve todos los conceptos de ingreso asociados a un usuario (sub)',
-  })
-  @ApiQuery({
-    name: 'sub',
-    description: 'Identificador único del usuario (Auth0 sub)',
-    required: true,
-    type: String,
+      'Devuelve todos los conceptos de ingreso asociados al usuario autenticado',
   })
   @ApiQuery({
     name: 'periodo',
@@ -49,7 +47,10 @@ export class ConceptosIngresosController {
   })
   @ApiResponse({ status: 200, description: 'Lista de conceptos de ingreso' })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
-  async findAllBySub(@Query() { sub, periodo }: QuerySubPeriodoDto) {
+  async findAllBySub(
+    @UserSub() sub: string,
+    @Query() { periodo }: QueryPeriodoDto,
+  ) {
     try {
       const data = await this.conceptosIngresosService.findAllBySub({
         sub,
@@ -61,10 +62,9 @@ export class ConceptosIngresosController {
         data,
       };
     } catch (error) {
-      throw new InternalServerErrorException(
-        error instanceof Error
-          ? error.message
-          : 'Ocurrió un error al obtener los conceptos de ingreso',
+      throw toHttpException(
+        error,
+        'Ocurrió un error al obtener los conceptos de ingreso',
       );
     }
   }
@@ -73,7 +73,7 @@ export class ConceptosIngresosController {
   @ApiOperation({
     summary: 'Crear un concepto de ingreso',
     description:
-      'Crea un nuevo concepto de ingreso para el usuario especificado',
+      'Crea un nuevo concepto de ingreso para el usuario autenticado',
   })
   @ApiResponse({
     status: 201,
@@ -81,10 +81,12 @@ export class ConceptosIngresosController {
   })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
   async createBySource(
+    @UserSub() sub: string,
     @Body() createConceptosIngresosDto: CreateConceptosIngresosDto,
   ) {
     try {
       const data = await this.conceptosIngresosService.createBySource({
+        sub,
         createConceptosIngresosDto,
       });
 
@@ -93,10 +95,44 @@ export class ConceptosIngresosController {
         data,
       };
     } catch (error) {
-      throw new InternalServerErrorException(
-        error instanceof Error
-          ? error.message
-          : 'Ocurrió un error al crear el concepto de ingreso',
+      throw toHttpException(
+        error,
+        'Ocurrió un error al crear el concepto de ingreso',
+      );
+    }
+  }
+
+  @Post('copiar-periodo-anterior')
+  @ApiOperation({
+    summary: 'Copiar los ingresos del mes anterior',
+    description:
+      'Copia al período destino los ingresos del mes anterior. Se omiten las fuentes que ya tienen un concepto en el período destino y las fuentes de ingreso inactivas o de aguinaldo',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Conceptos copiados (puede ser una lista vacía)',
+  })
+  @ApiResponse({ status: 500, description: 'Error interno del servidor' })
+  async copiarDelPeriodoAnterior(
+    @UserSub() sub: string,
+    @Body() { periodo_destino }: CopiarPeriodoDto,
+  ) {
+    try {
+      const data = await this.conceptosIngresosService.copiarDelPeriodoAnterior(
+        {
+          sub,
+          periodoDestino: periodo_destino,
+        },
+      );
+
+      return {
+        statusCode: 201,
+        data,
+      };
+    } catch (error) {
+      throw toHttpException(
+        error,
+        'Ocurrió un error al copiar los ingresos del mes anterior',
       );
     }
   }
@@ -117,13 +153,16 @@ export class ConceptosIngresosController {
     status: 200,
     description: 'Concepto de ingreso actualizado exitosamente',
   })
+  @ApiResponse({ status: 404, description: 'No se encontró el recurso' })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
   async updateById(
-    @Param('id') id: string,
+    @UserSub() sub: string,
+    @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
     @Body() updateConceptosIngresosDto: UpdateConceptosIngresosDto,
   ) {
     try {
       const data = await this.conceptosIngresosService.updateById({
+        sub,
         id,
         updateConceptosIngresosDto,
       });
@@ -133,10 +172,9 @@ export class ConceptosIngresosController {
         data,
       };
     } catch (error) {
-      throw new InternalServerErrorException(
-        error instanceof Error
-          ? error.message
-          : 'Ocurrió un error al actualizar el concepto de ingreso',
+      throw toHttpException(
+        error,
+        'Ocurrió un error al actualizar el concepto de ingreso',
       );
     }
   }
@@ -156,20 +194,23 @@ export class ConceptosIngresosController {
     status: 200,
     description: 'Concepto de ingreso eliminado exitosamente',
   })
+  @ApiResponse({ status: 404, description: 'No se encontró el recurso' })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
-  async deleteById(@Param('id') id: string) {
+  async deleteById(
+    @UserSub() sub: string,
+    @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
+  ) {
     try {
-      const data = await this.conceptosIngresosService.deleteById({ id });
+      const data = await this.conceptosIngresosService.deleteById({ sub, id });
 
       return {
         statusCode: 200,
         data,
       };
     } catch (error) {
-      throw new InternalServerErrorException(
-        error instanceof Error
-          ? error.message
-          : 'Ocurrió un error al eliminar el concepto de ingreso',
+      throw toHttpException(
+        error,
+        'Ocurrió un error al eliminar el concepto de ingreso',
       );
     }
   }

@@ -3,11 +3,13 @@
 import { ConceptosGastos } from './schema/conceptos_gastos.schema';
 import { ConceptosIngresos } from '../conceptos_ingresos/schema/conceptos_ingresos.schema';
 import { CreateConceptosGastosDto } from './dto/create-conceptos_gastos.dto';
-import { Injectable } from '@nestjs/common';
+import { FuentesGastos } from '../fuentes_gastos/schema/fuentes_gastos.schema';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { PatchPagadoConceptosGastosDto } from './dto/patch-pagado-conceptos_gastos.dto';
-import { QuerySubPeriodoDto } from '../utils/query.dto';
+import { QueryPeriodoDto } from '../utils/query.dto';
+import { getPeriodoAnterior } from '../utils/periodo';
 import { UpdateConceptosGastosDto } from './dto/update-conceptos_gastos.dto';
 
 @Injectable()
@@ -17,12 +19,14 @@ export class ConceptosGastosService {
     readonly conceptosGastosModel: Model<ConceptosGastos>,
     @InjectModel(ConceptosIngresos.name)
     readonly conceptosIngresosModel: Model<ConceptosIngresos>,
+    @InjectModel(FuentesGastos.name)
+    readonly fuentesGastosModel: Model<FuentesGastos>,
   ) {}
 
   async findAllBySub({
     sub,
     periodo,
-  }: QuerySubPeriodoDto): Promise<ConceptosGastos[]> {
+  }: QueryPeriodoDto & { sub: string }): Promise<ConceptosGastos[]> {
     const filter: Record<string, string | undefined> = { sub };
 
     if (periodo) {
@@ -67,47 +71,147 @@ export class ConceptosGastosService {
   }
 
   async createBySource({
+    sub,
     createConceptosGastosDto,
   }: {
+    sub: string;
     createConceptosGastosDto: CreateConceptosGastosDto;
   }) {
-    const newConceptoGasto = new this.conceptosGastosModel(
-      createConceptosGastosDto,
-    );
+    await this.assertFuenteGastoDelUsuario({
+      sub,
+      idFuenteGasto: createConceptosGastosDto.id_fuente_gasto,
+    });
+
+    const newConceptoGasto = new this.conceptosGastosModel({
+      ...createConceptosGastosDto,
+      sub,
+    });
     return newConceptoGasto.save();
   }
 
   async updateById({
+    sub,
     id,
     updateConceptosGastosDto,
   }: {
-    id: string;
+    sub: string;
+    id: Types.ObjectId;
     updateConceptosGastosDto: UpdateConceptosGastosDto;
-  }): Promise<ConceptosGastos | null> {
-    return this.conceptosGastosModel
-      .findByIdAndUpdate(id, updateConceptosGastosDto, {
+  }): Promise<ConceptosGastos> {
+    if (updateConceptosGastosDto.id_fuente_gasto) {
+      await this.assertFuenteGastoDelUsuario({
+        sub,
+        idFuenteGasto: updateConceptosGastosDto.id_fuente_gasto,
+      });
+    }
+
+    const concepto = await this.conceptosGastosModel
+      .findOneAndUpdate({ _id: id, sub }, updateConceptosGastosDto, {
         returnDocument: 'after',
+        runValidators: true,
       })
       .exec();
+
+    if (!concepto) {
+      throw new NotFoundException('No se encontró el concepto de gasto');
+    }
+
+    return concepto;
   }
 
   async patchPagadoById({
+    sub,
     id,
     patchPagadoConceptosGastosDto,
   }: {
-    id: string;
+    sub: string;
+    id: Types.ObjectId;
     patchPagadoConceptosGastosDto: PatchPagadoConceptosGastosDto;
-  }): Promise<ConceptosGastos | null> {
-    return this.conceptosGastosModel
-      .findByIdAndUpdate(
-        id,
+  }): Promise<ConceptosGastos> {
+    const concepto = await this.conceptosGastosModel
+      .findOneAndUpdate(
+        { _id: id, sub },
         { ...patchPagadoConceptosGastosDto, pagado: true },
-        { returnDocument: 'after' },
+        { returnDocument: 'after', runValidators: true },
       )
       .exec();
+
+    if (!concepto) {
+      throw new NotFoundException('No se encontró el concepto de gasto');
+    }
+
+    return concepto;
   }
 
-  async deleteById({ id }: { id: string }): Promise<ConceptosGastos | null> {
-    return this.conceptosGastosModel.findByIdAndDelete(id).exec();
+  async deleteById({
+    sub,
+    id,
+  }: {
+    sub: string;
+    id: Types.ObjectId;
+  }): Promise<ConceptosGastos> {
+    const concepto = await this.conceptosGastosModel
+      .findOneAndDelete({ _id: id, sub })
+      .exec();
+
+    if (!concepto) {
+      throw new NotFoundException('No se encontró el concepto de gasto');
+    }
+
+    return concepto;
+  }
+
+  async copiarDelPeriodoAnterior({
+    sub,
+    periodoDestino,
+  }: {
+    sub: string;
+    periodoDestino: string;
+  }) {
+    const [conceptosOrigen, conceptosDestino] = await Promise.all([
+      this.conceptosGastosModel
+        .find({ sub, periodo: getPeriodoAnterior(periodoDestino) })
+        .exec(),
+      this.conceptosGastosModel.find({ sub, periodo: periodoDestino }).exec(),
+    ]);
+
+    const fuentesConGastoEnDestino = new Set(
+      conceptosDestino.map((c) => c.id_fuente_gasto.toString()),
+    );
+
+    const nuevosConceptos = conceptosOrigen
+      .filter(
+        (c) => !fuentesConGastoEnDestino.has(c.id_fuente_gasto.toString()),
+      )
+      .map((c) => {
+        const usaPorcentaje =
+          c.porcentaje_total !== undefined && c.porcentaje_total !== -1;
+
+        return {
+          sub,
+          id_fuente_gasto: c.id_fuente_gasto,
+          periodo: periodoDestino,
+          monto: usaPorcentaje ? -1 : c.monto,
+          porcentaje_total: c.porcentaje_total,
+        };
+      });
+
+    return this.conceptosGastosModel.insertMany(nuevosConceptos);
+  }
+
+  private async assertFuenteGastoDelUsuario({
+    sub,
+    idFuenteGasto,
+  }: {
+    sub: string;
+    idFuenteGasto: string;
+  }) {
+    const fuente = await this.fuentesGastosModel
+      .exists({ _id: idFuenteGasto, sub })
+      .exec();
+
+    if (!fuente) {
+      throw new NotFoundException('No se encontró la fuente de gasto');
+    }
   }
 }
