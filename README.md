@@ -77,7 +77,7 @@ Hay un módulo de NestJS por recurso en `src/`, cada uno con su controller, serv
 - **Gastos en monto o porcentaje**: un concepto de gasto se define con un `monto` fijo o con un `porcentaje_total` de los ingresos de su período. El valor `-1` en cualquiera de los dos indica que no se usa; al leer los gastos, la API devuelve siempre el `monto` ya calculado.
 - **Fuentes con conceptos**: una fuente no se puede eliminar mientras tenga conceptos asociados (responde 409).
 - **Copiar el mes anterior**: `POST /conceptos-gastos/copiar-periodo-anterior` y `POST /conceptos-ingresos/copiar-periodo-anterior` copian al `periodo_destino` los conceptos del mes previo, para no recargar cada mes los que se repiten. No pisan las fuentes que ya tienen un concepto en el mes destino. Los gastos copiados quedan sin pagar y sin aclaración, y los definidos por porcentaje se copian como porcentaje (no con el monto final con el que se pagaron); en ingresos se omiten las fuentes inactivas y las de aguinaldo, que no se cobran todos los meses.
-- **Fondo de emergencia**: `porcentaje_total` es la parte del excedente mensual (ingresos menos gastos) que se reserva para el fondo. `incluir_dolares` indica si los dólares (`monto_dolares`) cuentan como parte del fondo; la conversión a pesos la hace el frontend.
+- **Fondo de emergencia**: `porcentaje_total` es la parte del excedente mensual (ingresos menos gastos) que se reserva para el fondo (33.33 % si el usuario no lo configuró). `incluir_dolares` indica si los dólares (`monto_dolares`) cuentan como parte del fondo; la conversión a pesos la hace el frontend.
 
 ## CI
 

@@ -42,7 +42,7 @@ export class FondoEmergencia {
   @Prop({
     type: Number,
     required: false,
-    default: 0,
+    default: 33.33,
     min: [0, 'El valor del porcentaje total no puede ser menor a 0'],
     max: [100, 'El valor del porcentaje total no puede ser mayor a 100'],
   })
