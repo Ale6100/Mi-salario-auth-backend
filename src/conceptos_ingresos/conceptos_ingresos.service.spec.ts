@@ -65,6 +65,28 @@ describe('ConceptosIngresosService', () => {
 
       expect(conceptosIngresosModel.find).toHaveBeenCalledWith({ sub });
     });
+
+    it('ordena por período descendente y por valor descendente como segundo criterio', async () => {
+      conceptosIngresosModel.find.mockReturnValue(
+        queryResult([
+          { periodo: '2026-06', valor: 100 },
+          { periodo: '2026-07', valor: 50 },
+          { periodo: '2026-07', valor: 500 },
+          { periodo: '2026-06', valor: 300 },
+        ]),
+      );
+
+      const resultado = await service.findAllBySub({ sub });
+
+      expect(
+        resultado.map((c) => ({ periodo: c.periodo, valor: c.valor })),
+      ).toEqual([
+        { periodo: '2026-07', valor: 500 },
+        { periodo: '2026-07', valor: 50 },
+        { periodo: '2026-06', valor: 300 },
+        { periodo: '2026-06', valor: 100 },
+      ]);
+    });
   });
 
   describe('createBySource', () => {

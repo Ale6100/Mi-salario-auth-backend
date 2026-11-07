@@ -21,6 +21,7 @@ import {
 import { QueryPeriodoDto } from '../utils/query.dto';
 import { ConceptosGastosService } from './conceptos_gastos.service';
 import { CreateConceptosGastosDto } from './dto/create-conceptos_gastos.dto';
+import { CreateCuotasGastosDto } from './dto/create-cuotas-gastos.dto';
 import { UpdateConceptosGastosDto } from './dto/update-conceptos_gastos.dto';
 import { PatchPagadoConceptosGastosDto } from './dto/patch-pagado-conceptos_gastos.dto';
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
@@ -102,6 +103,48 @@ export class ConceptosGastosController {
         error,
         'Ocurrió un error al crear el concepto de gasto',
       );
+    }
+  }
+
+  @Post('cuotas')
+  @ApiOperation({
+    summary: 'Crear gastos en cuotas recurrentes',
+    description:
+      'Crea una secuencia de gastos mensuales en cuotas a partir de un período inicial',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Cuotas creadas exitosamente',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'La cuota inicial no puede ser mayor al total de cuotas',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'No se encontró la fuente de gasto',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Ya existe un gasto para esta fuente en uno de los períodos',
+  })
+  @ApiResponse({ status: 500, description: 'Error interno del servidor' })
+  async createCuotas(
+    @UserSub() sub: string,
+    @Body() createCuotasGastosDto: CreateCuotasGastosDto,
+  ) {
+    try {
+      const data = await this.conceptosGastosService.createCuotas({
+        sub,
+        createCuotasGastosDto,
+      });
+
+      return {
+        statusCode: 201,
+        data,
+      };
+    } catch (error) {
+      throw toHttpException(error, 'Ocurrió un error al crear las cuotas');
     }
   }
 

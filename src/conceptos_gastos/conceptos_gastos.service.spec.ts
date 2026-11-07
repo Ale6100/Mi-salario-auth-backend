@@ -13,6 +13,7 @@ import {
 } from '../test-utils/mongoose-model.mock';
 import { ConceptosGastosService } from './conceptos_gastos.service';
 import { CreateConceptosGastosDto } from './dto/create-conceptos_gastos.dto';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import { ConceptosGastos } from './schema/conceptos_gastos.schema';
 
 type ConceptoGastoGuardado = Partial<ConceptosGastos> & { periodo: string };
@@ -111,7 +112,30 @@ describe('ConceptosGastosService', () => {
 
       const resultado = await service.findAllBySub({ sub });
 
-      expect(resultado.map((c) => c.monto)).toEqual([200, 150]);
+      expect(resultado.map((c) => c.monto)).toEqual([150, 200]);
+    });
+
+    it('ordena por período descendente y por monto descendente como segundo criterio', async () => {
+      conceptosGastosModel.find.mockReturnValue(
+        queryResult([
+          conceptoGuardado({ periodo: '2026-06', monto: 100 }),
+          conceptoGuardado({ periodo: '2026-07', monto: 50 }),
+          conceptoGuardado({ periodo: '2026-07', monto: 500 }),
+          conceptoGuardado({ periodo: '2026-06', monto: 300 }),
+        ]),
+      );
+      conceptosIngresosModel.find.mockReturnValue(queryResult([]));
+
+      const resultado = await service.findAllBySub({ sub });
+
+      expect(
+        resultado.map((c) => ({ periodo: c.periodo, monto: c.monto })),
+      ).toEqual([
+        { periodo: '2026-07', monto: 500 },
+        { periodo: '2026-07', monto: 50 },
+        { periodo: '2026-06', monto: 300 },
+        { periodo: '2026-06', monto: 100 },
+      ]);
     });
 
     it('respeta el monto fijo aunque también haya porcentaje', async () => {
@@ -201,6 +225,107 @@ describe('ConceptosGastosService', () => {
         service.createBySource({ sub, createConceptosGastosDto }),
       ).rejects.toThrow(NotFoundException);
       expect(conceptosGastosModel).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('createCuotas', () => {
+    it('lanza BadRequestException si la cuota actual es mayor al total de cuotas', async () => {
+      await expect(
+        service.createCuotas({
+          sub,
+          createCuotasGastosDto: {
+            id_fuente_gasto: idFuente.toString(),
+            periodo_inicio: '2026-11',
+            monto: 500,
+            total_cuotas: 3,
+            cuota_actual: 5,
+          },
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('lanza NotFoundException si la fuente de gasto no pertenece al usuario', async () => {
+      fuentesGastosModel.exists.mockReturnValue(queryResult(null));
+
+      await expect(
+        service.createCuotas({
+          sub,
+          createCuotasGastosDto: {
+            id_fuente_gasto: idFuente.toString(),
+            periodo_inicio: '2026-11',
+            monto: 500,
+            total_cuotas: 3,
+            cuota_actual: 1,
+          },
+        }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('lanza ConflictException si alguno de los períodos ya tiene un gasto para esa fuente', async () => {
+      fuentesGastosModel.exists.mockReturnValue(queryResult({ _id: idFuente }));
+      conceptosGastosModel.find.mockReturnValue(
+        queryResult([{ periodo: '2026-12' }]),
+      );
+
+      await expect(
+        service.createCuotas({
+          sub,
+          createCuotasGastosDto: {
+            id_fuente_gasto: idFuente.toString(),
+            periodo_inicio: '2026-11',
+            monto: 500,
+            total_cuotas: 3,
+            cuota_actual: 1,
+          },
+        }),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('crea exitosamente las cuotas a partir de la cuota actual y asigna las aclaraciones correspondientes', async () => {
+      fuentesGastosModel.exists.mockReturnValue(queryResult({ _id: idFuente }));
+      conceptosGastosModel.find.mockReturnValue(queryResult([]));
+
+      await service.createCuotas({
+        sub,
+        createCuotasGastosDto: {
+          id_fuente_gasto: idFuente.toString(),
+          periodo_inicio: '2026-11',
+          monto: 25000,
+          total_cuotas: 6,
+          cuota_actual: 4,
+          aclaracion: 'Smart TV',
+        },
+      });
+
+      expect(conceptosGastosModel.insertMany).toHaveBeenCalledWith([
+        {
+          sub,
+          id_fuente_gasto: idFuente.toString(),
+          periodo: '2026-11',
+          monto: 25000,
+          porcentaje_total: -1,
+          pagado: false,
+          aclaracion: 'Smart TV (Cuota 4/6)',
+        },
+        {
+          sub,
+          id_fuente_gasto: idFuente.toString(),
+          periodo: '2026-12',
+          monto: 25000,
+          porcentaje_total: -1,
+          pagado: false,
+          aclaracion: 'Smart TV (Cuota 5/6)',
+        },
+        {
+          sub,
+          id_fuente_gasto: idFuente.toString(),
+          periodo: '2027-01',
+          monto: 25000,
+          porcentaje_total: -1,
+          pagado: false,
+          aclaracion: 'Smart TV (Cuota 6/6)',
+        },
+      ]);
     });
   });
 

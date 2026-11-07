@@ -112,7 +112,7 @@ describe('FuentesGastosService', () => {
         ConflictException,
       );
       expect(conceptosGastosModel.countDocuments).toHaveBeenCalledWith({
-        id_fuente_gasto: id,
+        id_fuente_gasto: { $in: [id, id.toString()] },
         sub,
       });
       expect(fuentesGastosModel.findOneAndDelete).not.toHaveBeenCalled();

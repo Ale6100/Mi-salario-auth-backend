@@ -77,8 +77,14 @@ export class FuentesIngresosService {
       throw new NotFoundException('No se encontró la fuente de ingreso');
     }
 
+    const idObjectId = new Types.ObjectId(id);
+    const idString = id.toString();
+
     const conceptosAsociados = await this.conceptosIngresosModel
-      .countDocuments({ id_fuente_ingreso: id, sub })
+      .countDocuments({
+        id_fuente_ingreso: { $in: [idObjectId, idString] },
+        sub,
+      })
       .exec();
 
     if (conceptosAsociados > 0) {

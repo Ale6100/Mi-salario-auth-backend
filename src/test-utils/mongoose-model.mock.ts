@@ -2,6 +2,7 @@
 
 export type QueryMock = {
   populate: jest.Mock;
+  select: jest.Mock;
   exec: jest.Mock;
 };
 
@@ -18,9 +19,11 @@ export type ModelMock = jest.Mock & {
 export const queryResult = (value: unknown): QueryMock => {
   const query: QueryMock = {
     populate: jest.fn(),
+    select: jest.fn(),
     exec: jest.fn().mockResolvedValue(value),
   };
   query.populate.mockReturnValue(query);
+  query.select.mockReturnValue(query);
   return query;
 };
 

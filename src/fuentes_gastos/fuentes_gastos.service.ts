@@ -77,8 +77,14 @@ export class FuentesGastosService {
       throw new NotFoundException('No se encontró la fuente de gasto');
     }
 
+    const idObjectId = new Types.ObjectId(id);
+    const idString = id.toString();
+
     const conceptosAsociados = await this.conceptosGastosModel
-      .countDocuments({ id_fuente_gasto: id, sub })
+      .countDocuments({
+        id_fuente_gasto: { $in: [idObjectId, idString] },
+        sub,
+      })
       .exec();
 
     if (conceptosAsociados > 0) {

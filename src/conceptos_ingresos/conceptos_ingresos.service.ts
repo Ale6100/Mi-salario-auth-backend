@@ -29,10 +29,17 @@ export class ConceptosIngresosService {
       filter.periodo = periodo;
     }
 
-    return this.conceptosIngresosModel
+    const conceptos = await this.conceptosIngresosModel
       .find(filter)
       .populate('id_fuente_ingreso')
       .exec();
+
+    return conceptos.sort((a, b) => {
+      if (a.periodo !== b.periodo) {
+        return b.periodo.localeCompare(a.periodo);
+      }
+      return (b.valor ?? 0) - (a.valor ?? 0);
+    });
   }
 
   async createBySource({

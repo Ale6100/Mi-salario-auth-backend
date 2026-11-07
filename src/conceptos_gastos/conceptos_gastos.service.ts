@@ -3,13 +3,19 @@
 import { ConceptosGastos } from './schema/conceptos_gastos.schema';
 import { ConceptosIngresos } from '../conceptos_ingresos/schema/conceptos_ingresos.schema';
 import { CreateConceptosGastosDto } from './dto/create-conceptos_gastos.dto';
+import { CreateCuotasGastosDto } from './dto/create-cuotas-gastos.dto';
 import { FuentesGastos } from '../fuentes_gastos/schema/fuentes_gastos.schema';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { PatchPagadoConceptosGastosDto } from './dto/patch-pagado-conceptos_gastos.dto';
 import { QueryPeriodoDto } from '../utils/query.dto';
-import { getPeriodoAnterior } from '../utils/periodo';
+import { getPeriodoAnterior, getPeriodoSiguiente } from '../utils/periodo';
 import { UpdateConceptosGastosDto } from './dto/update-conceptos_gastos.dto';
 
 @Injectable()
@@ -50,7 +56,7 @@ export class ConceptosGastosService {
         (totalIngresosPorPeriodo[ingreso.periodo] ?? 0) + ingreso.valor;
     }
 
-    return conceptos.map((c) => {
+    const resultado = conceptos.map((c) => {
       const cObj = c.toObject();
 
       let monto = cObj.monto;
@@ -67,6 +73,13 @@ export class ConceptosGastosService {
       }
 
       return { ...cObj, monto };
+    });
+
+    return resultado.sort((a, b) => {
+      if (a.periodo !== b.periodo) {
+        return b.periodo.localeCompare(a.periodo);
+      }
+      return (b.monto ?? 0) - (a.monto ?? 0);
     });
   }
 
@@ -87,6 +100,82 @@ export class ConceptosGastosService {
       sub,
     });
     return newConceptoGasto.save();
+  }
+
+  async createCuotas({
+    sub,
+    createCuotasGastosDto,
+  }: {
+    sub: string;
+    createCuotasGastosDto: CreateCuotasGastosDto;
+  }) {
+    const {
+      id_fuente_gasto,
+      periodo_inicio,
+      monto,
+      total_cuotas,
+      cuota_actual = 1,
+      aclaracion,
+    } = createCuotasGastosDto;
+
+    if (cuota_actual > total_cuotas) {
+      throw new BadRequestException(
+        'La cuota inicial no puede ser mayor al total de cuotas',
+      );
+    }
+
+    await this.assertFuenteGastoDelUsuario({
+      sub,
+      idFuenteGasto: id_fuente_gasto,
+    });
+
+    const cantidadCuotas = total_cuotas - cuota_actual + 1;
+    const periodosObjetivo: string[] = [];
+
+    for (let offset = 0; offset < cantidadCuotas; offset++) {
+      periodosObjetivo.push(getPeriodoSiguiente(periodo_inicio, offset));
+    }
+
+    const idObjectId = new Types.ObjectId(id_fuente_gasto);
+    const idString = id_fuente_gasto.toString();
+
+    const gastosExistentes = await this.conceptosGastosModel
+      .find({
+        sub,
+        id_fuente_gasto: { $in: [idObjectId, idString] },
+        periodo: { $in: periodosObjetivo },
+      })
+      .select('periodo')
+      .exec();
+
+    if (gastosExistentes.length > 0) {
+      const periodosEnConflicto = gastosExistentes
+        .map((g) => g.periodo)
+        .join(', ');
+      throw new ConflictException(
+        `Ya existe un gasto para esta fuente en el período: ${periodosEnConflicto}`,
+      );
+    }
+
+    const nuevosConceptos = periodosObjetivo.map((periodo, index) => {
+      const numeroCuota = cuota_actual + index;
+      const textoCuota = `Cuota ${numeroCuota}/${total_cuotas}`;
+      const aclaracionFinal = aclaracion?.trim()
+        ? `${aclaracion.trim()} (${textoCuota})`
+        : textoCuota;
+
+      return {
+        sub,
+        id_fuente_gasto,
+        periodo,
+        monto,
+        porcentaje_total: -1,
+        pagado: false,
+        aclaracion: aclaracionFinal,
+      };
+    });
+
+    return this.conceptosGastosModel.insertMany(nuevosConceptos);
   }
 
   async updateById({
