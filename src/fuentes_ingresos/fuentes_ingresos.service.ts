@@ -32,6 +32,18 @@ export class FuentesIngresosService {
     sub: string;
     createFuentesIngresoDto: CreateFuentesIngresosDto;
   }): Promise<FuentesIngresos> {
+    const yaExiste = await this.fuentesIngresosModel
+      .exists({
+        sub,
+        nombre: createFuentesIngresoDto.nombre,
+      })
+      .collation({ locale: 'es', strength: 2 })
+      .exec();
+
+    if (yaExiste) {
+      throw new ConflictException('Ya existe una fuente con ese nombre');
+    }
+
     const newFuenteIngreso = new this.fuentesIngresosModel({
       ...createFuentesIngresoDto,
       sub,
@@ -48,6 +60,21 @@ export class FuentesIngresosService {
     id: Types.ObjectId;
     updateFuentesIngresosDto: UpdateFuentesIngresosDto;
   }): Promise<FuentesIngresos> {
+    if (updateFuentesIngresosDto.nombre) {
+      const yaExiste = await this.fuentesIngresosModel
+        .exists({
+          _id: { $ne: id },
+          sub,
+          nombre: updateFuentesIngresosDto.nombre,
+        })
+        .collation({ locale: 'es', strength: 2 })
+        .exec();
+
+      if (yaExiste) {
+        throw new ConflictException('Ya existe una fuente con ese nombre');
+      }
+    }
+
     const fuente = await this.fuentesIngresosModel
       .findOneAndUpdate({ _id: id, sub }, updateFuentesIngresosDto, {
         returnDocument: 'after',

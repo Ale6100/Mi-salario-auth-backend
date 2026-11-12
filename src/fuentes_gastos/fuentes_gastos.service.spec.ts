@@ -50,19 +50,60 @@ describe('FuentesGastosService', () => {
     expect(fuentesGastosModel.find).toHaveBeenCalledWith({ sub });
   });
 
-  it('al crear asigna el sub recibido aunque el DTO traiga otro', async () => {
-    const createFuentesGastosDto = {
-      nombre: 'Alquiler',
-      color: '#FF0000',
-      sub: 'auth0|otro-usuario',
-    };
+  describe('create', () => {
+    it('al crear asigna el sub recibido aunque el DTO traiga otro', async () => {
+      const createFuentesGastosDto = {
+        nombre: 'Alquiler',
+        color: '#FF0000',
+        sub: 'auth0|otro-usuario',
+      };
 
-    await service.create({ sub, createFuentesGastosDto });
+      await service.create({ sub, createFuentesGastosDto });
 
-    expect(fuentesGastosModel).toHaveBeenCalledWith({
-      nombre: 'Alquiler',
-      color: '#FF0000',
-      sub,
+      expect(fuentesGastosModel.exists).toHaveBeenCalledWith({
+        sub,
+        nombre: 'Alquiler',
+      });
+      expect(fuentesGastosModel).toHaveBeenCalledWith({
+        nombre: 'Alquiler',
+        color: '#FF0000',
+        sub,
+      });
+    });
+
+    it('al crear guarda seguimiento_diario si se envía', async () => {
+      const createFuentesGastosDto = {
+        nombre: 'Supermercado',
+        color: '#00FF00',
+        seguimiento_diario: true,
+      };
+
+      await service.create({ sub, createFuentesGastosDto });
+
+      expect(fuentesGastosModel).toHaveBeenCalledWith({
+        nombre: 'Supermercado',
+        color: '#00FF00',
+        seguimiento_diario: true,
+        sub,
+      });
+    });
+
+    it('lanza ConflictException si ya existe una fuente con el mismo nombre para el usuario', async () => {
+      fuentesGastosModel.exists.mockReturnValue(
+        queryResult({ _id: new Types.ObjectId() }),
+      );
+      const createFuentesGastosDto = {
+        nombre: 'Alquiler',
+        color: '#FF0000',
+      };
+
+      await expect(
+        service.create({ sub, createFuentesGastosDto }),
+      ).rejects.toThrow(ConflictException);
+      expect(fuentesGastosModel.exists).toHaveBeenCalledWith({
+        sub,
+        nombre: 'Alquiler',
+      });
     });
   });
 
@@ -77,11 +118,47 @@ describe('FuentesGastosService', () => {
       await expect(
         service.updateById({ sub, id, updateFuentesGastosDto }),
       ).resolves.toBe(actualizada);
+      expect(fuentesGastosModel.exists).toHaveBeenCalledWith({
+        _id: { $ne: id },
+        sub,
+        nombre: 'Luz',
+      });
       expect(fuentesGastosModel.findOneAndUpdate).toHaveBeenCalledWith(
         { _id: id, sub },
         updateFuentesGastosDto,
         { returnDocument: 'after', runValidators: true },
       );
+    });
+
+    it('lanza ConflictException si ya existe otra fuente con el mismo nombre para el usuario', async () => {
+      fuentesGastosModel.exists.mockReturnValue(
+        queryResult({ _id: new Types.ObjectId() }),
+      );
+
+      await expect(
+        service.updateById({
+          sub,
+          id,
+          updateFuentesGastosDto: { nombre: 'Luz' },
+        }),
+      ).rejects.toThrow(ConflictException);
+      expect(fuentesGastosModel.findOneAndUpdate).not.toHaveBeenCalled();
+    });
+
+    it('permite actualizar sin validar nombre si este no se envía', async () => {
+      const actualizada = { seguimiento_diario: true };
+      fuentesGastosModel.findOneAndUpdate.mockReturnValue(
+        queryResult(actualizada),
+      );
+
+      await expect(
+        service.updateById({
+          sub,
+          id,
+          updateFuentesGastosDto: { seguimiento_diario: true },
+        }),
+      ).resolves.toBe(actualizada);
+      expect(fuentesGastosModel.exists).not.toHaveBeenCalled();
     });
 
     it('lanza NotFoundException si la fuente no es del usuario', async () => {

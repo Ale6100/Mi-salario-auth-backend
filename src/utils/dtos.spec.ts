@@ -7,6 +7,7 @@ import { UpdateConceptosGastosDto } from '../conceptos_gastos/dto/update-concept
 import { CreateConceptosIngresosDto } from '../conceptos_ingresos/dto/create-conceptos_ingresos.dto';
 import { UpdateFondoEmergenciaDto } from '../fondo_emergencia/dto/update-fondo_emergencia.dto';
 import { CreateFuentesGastosDto } from '../fuentes_gastos/dto/create-fuentes_gastos.dto';
+import { UpdateFuentesGastosDto } from '../fuentes_gastos/dto/update-fuentes_gastos.dto';
 import { UpdateFuentesIngresosDto } from '../fuentes_ingresos/dto/update-fuentes_ingresos.dto';
 import { CopiarPeriodoDto } from './copiar-periodo.dto';
 import { QueryPeriodoDto } from './query.dto';
@@ -153,5 +154,36 @@ describe('DTOs con el ValidationPipe global', () => {
         ).rejects.toThrow(BadRequestException);
       },
     );
+  });
+
+  describe('seguimiento_diario en fuentes de gasto', () => {
+    it.each([true, false])(
+      'acepta seguimiento_diario=%p',
+      async (seguimiento_diario) => {
+        await expect(
+          validarBody(CreateFuentesGastosDto, {
+            nombre: 'Luz',
+            color: '#FF0000',
+            seguimiento_diario,
+          }),
+        ).resolves.toMatchObject({ seguimiento_diario });
+      },
+    );
+
+    it('rechaza seguimiento_diario no booleano', async () => {
+      await expect(
+        validarBody(CreateFuentesGastosDto, {
+          nombre: 'Luz',
+          color: '#FF0000',
+          seguimiento_diario: 'si',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('los DTOs de actualización aceptan seguimiento_diario', async () => {
+      await expect(
+        validarBody(UpdateFuentesGastosDto, { seguimiento_diario: true }),
+      ).resolves.toMatchObject({ seguimiento_diario: true });
+    });
   });
 });

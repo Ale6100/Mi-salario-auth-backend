@@ -51,4 +51,9 @@ export class FuentesIngresos {
 export const FuentesIngresosSchema =
   SchemaFactory.createForClass(FuentesIngresos);
 
+FuentesIngresosSchema.index(
+  { sub: 1, nombre: 1 },
+  { unique: true, collation: { locale: 'es', strength: 2 } },
+);
+
 export type FuentesIngresosDocument = HydratedDocument<FuentesIngresos>;

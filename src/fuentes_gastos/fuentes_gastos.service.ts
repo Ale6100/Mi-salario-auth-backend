@@ -32,6 +32,18 @@ export class FuentesGastosService {
     sub: string;
     createFuentesGastosDto: CreateFuentesGastosDto;
   }): Promise<FuentesGastos> {
+    const yaExiste = await this.fuentesGastosModel
+      .exists({
+        sub,
+        nombre: createFuentesGastosDto.nombre,
+      })
+      .collation({ locale: 'es', strength: 2 })
+      .exec();
+
+    if (yaExiste) {
+      throw new ConflictException('Ya existe una fuente con ese nombre');
+    }
+
     const newFuenteGasto = new this.fuentesGastosModel({
       ...createFuentesGastosDto,
       sub,
@@ -48,6 +60,21 @@ export class FuentesGastosService {
     id: Types.ObjectId;
     updateFuentesGastosDto: UpdateFuentesGastosDto;
   }): Promise<FuentesGastos> {
+    if (updateFuentesGastosDto.nombre) {
+      const yaExiste = await this.fuentesGastosModel
+        .exists({
+          _id: { $ne: id },
+          sub,
+          nombre: updateFuentesGastosDto.nombre,
+        })
+        .collation({ locale: 'es', strength: 2 })
+        .exec();
+
+      if (yaExiste) {
+        throw new ConflictException('Ya existe una fuente con ese nombre');
+      }
+    }
+
     const fuente = await this.fuentesGastosModel
       .findOneAndUpdate({ _id: id, sub }, updateFuentesGastosDto, {
         returnDocument: 'after',

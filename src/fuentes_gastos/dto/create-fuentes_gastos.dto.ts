@@ -35,4 +35,13 @@ export class CreateFuentesGastosDto {
   @IsBoolean()
   @IsOptional()
   readonly es_indispensable?: boolean;
+
+  @ApiProperty({
+    description: 'Indica si la fuente de gasto requiere seguimiento diario',
+    required: false,
+    default: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  readonly seguimiento_diario?: boolean;
 }

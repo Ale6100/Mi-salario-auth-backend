@@ -4,6 +4,7 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "isolatedModules": true,
+    "types": ["node", "vitest/globals"],
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,

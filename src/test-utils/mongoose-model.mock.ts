@@ -1,29 +1,35 @@
 // src\test-utils\mongoose-model.mock.ts
 
+import type { Mock } from 'vitest';
+import { vi } from 'vitest';
+
 export type QueryMock = {
-  populate: jest.Mock;
-  select: jest.Mock;
-  exec: jest.Mock;
+  populate: Mock;
+  select: Mock;
+  collation: Mock;
+  exec: Mock;
 };
 
-export type ModelMock = jest.Mock & {
-  find: jest.Mock;
-  findOne: jest.Mock;
-  findOneAndUpdate: jest.Mock;
-  findOneAndDelete: jest.Mock;
-  exists: jest.Mock;
-  countDocuments: jest.Mock;
-  insertMany: jest.Mock;
+export type ModelMock = Mock & {
+  find: Mock;
+  findOne: Mock;
+  findOneAndUpdate: Mock;
+  findOneAndDelete: Mock;
+  exists: Mock;
+  countDocuments: Mock;
+  insertMany: Mock;
 };
 
 export const queryResult = (value: unknown): QueryMock => {
   const query: QueryMock = {
-    populate: jest.fn(),
-    select: jest.fn(),
-    exec: jest.fn().mockResolvedValue(value),
+    populate: vi.fn(),
+    select: vi.fn(),
+    collation: vi.fn(),
+    exec: vi.fn().mockResolvedValue(value),
   };
   query.populate.mockReturnValue(query);
   query.select.mockReturnValue(query);
+  query.collation.mockReturnValue(query);
   return query;
 };
 
@@ -33,18 +39,22 @@ export const queryResult = (value: unknown): QueryMock => {
  * estáticos de consulta como mocks.
  */
 export const createModelMock = (): ModelMock => {
-  const constructor = jest.fn((data: Record<string, unknown>) => ({
-    ...data,
-    save: jest.fn().mockResolvedValue(data),
-  }));
+  const constructor = vi.fn(function (
+    this: Record<string, unknown>,
+    data: Record<string, unknown>,
+  ) {
+    Object.assign(this, data);
+    this.save = vi.fn().mockResolvedValue(data);
+    return this;
+  });
 
   return Object.assign(constructor, {
-    find: jest.fn(),
-    findOne: jest.fn(),
-    findOneAndUpdate: jest.fn(),
-    findOneAndDelete: jest.fn(),
-    exists: jest.fn(),
-    countDocuments: jest.fn(),
-    insertMany: jest.fn((docs: unknown[]) => Promise.resolve(docs)),
+    find: vi.fn(),
+    findOne: vi.fn(),
+    findOneAndUpdate: vi.fn(),
+    findOneAndDelete: vi.fn(),
+    exists: vi.fn().mockReturnValue(queryResult(null)),
+    countDocuments: vi.fn(),
+    insertMany: vi.fn((docs: unknown[]) => Promise.resolve(docs)),
   });
 };

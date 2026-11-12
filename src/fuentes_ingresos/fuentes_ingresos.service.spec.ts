@@ -50,21 +50,46 @@ describe('FuentesIngresosService', () => {
     expect(fuentesIngresosModel.find).toHaveBeenCalledWith({ sub });
   });
 
-  it('al crear asigna el sub recibido aunque el DTO traiga otro', async () => {
-    const createFuentesIngresoDto = {
-      nombre: 'Sueldo',
-      color: '#FF0000',
-      activo: true,
-      sub: 'auth0|otro-usuario',
-    };
+  describe('create', () => {
+    it('al crear asigna el sub recibido aunque el DTO traiga otro', async () => {
+      const createFuentesIngresoDto = {
+        nombre: 'Sueldo',
+        color: '#FF0000',
+        activo: true,
+        sub: 'auth0|otro-usuario',
+      };
 
-    await service.create({ sub, createFuentesIngresoDto });
+      await service.create({ sub, createFuentesIngresoDto });
 
-    expect(fuentesIngresosModel).toHaveBeenCalledWith({
-      nombre: 'Sueldo',
-      color: '#FF0000',
-      activo: true,
-      sub,
+      expect(fuentesIngresosModel.exists).toHaveBeenCalledWith({
+        sub,
+        nombre: 'Sueldo',
+      });
+      expect(fuentesIngresosModel).toHaveBeenCalledWith({
+        nombre: 'Sueldo',
+        color: '#FF0000',
+        activo: true,
+        sub,
+      });
+    });
+
+    it('lanza ConflictException si ya existe una fuente con el mismo nombre para el usuario', async () => {
+      fuentesIngresosModel.exists.mockReturnValue(
+        queryResult({ _id: new Types.ObjectId() }),
+      );
+      const createFuentesIngresoDto = {
+        nombre: 'Sueldo',
+        color: '#FF0000',
+        activo: true,
+      };
+
+      await expect(
+        service.create({ sub, createFuentesIngresoDto }),
+      ).rejects.toThrow(ConflictException);
+      expect(fuentesIngresosModel.exists).toHaveBeenCalledWith({
+        sub,
+        nombre: 'Sueldo',
+      });
     });
   });
 
@@ -79,11 +104,47 @@ describe('FuentesIngresosService', () => {
       await expect(
         service.updateById({ sub, id, updateFuentesIngresosDto }),
       ).resolves.toBe(actualizada);
+      expect(fuentesIngresosModel.exists).toHaveBeenCalledWith({
+        _id: { $ne: id },
+        sub,
+        nombre: 'Freelance',
+      });
       expect(fuentesIngresosModel.findOneAndUpdate).toHaveBeenCalledWith(
         { _id: id, sub },
         updateFuentesIngresosDto,
         { returnDocument: 'after', runValidators: true },
       );
+    });
+
+    it('lanza ConflictException si ya existe otra fuente con el mismo nombre para el usuario', async () => {
+      fuentesIngresosModel.exists.mockReturnValue(
+        queryResult({ _id: new Types.ObjectId() }),
+      );
+
+      await expect(
+        service.updateById({
+          sub,
+          id,
+          updateFuentesIngresosDto: { nombre: 'Freelance' },
+        }),
+      ).rejects.toThrow(ConflictException);
+      expect(fuentesIngresosModel.findOneAndUpdate).not.toHaveBeenCalled();
+    });
+
+    it('permite actualizar sin validar nombre si este no se envía', async () => {
+      const actualizada = { activo: false };
+      fuentesIngresosModel.findOneAndUpdate.mockReturnValue(
+        queryResult(actualizada),
+      );
+
+      await expect(
+        service.updateById({
+          sub,
+          id,
+          updateFuentesIngresosDto: { activo: false },
+        }),
+      ).resolves.toBe(actualizada);
+      expect(fuentesIngresosModel.exists).not.toHaveBeenCalled();
     });
 
     it('lanza NotFoundException si la fuente no es del usuario', async () => {

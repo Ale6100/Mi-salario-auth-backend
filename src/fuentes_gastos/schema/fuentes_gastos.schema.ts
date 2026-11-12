@@ -39,8 +39,20 @@ export class FuentesGastos {
     default: false,
   })
   es_indispensable!: boolean;
+
+  @Prop({
+    type: Boolean,
+    required: false,
+    default: false,
+  })
+  seguimiento_diario!: boolean;
 }
 
 export const FuentesGastosSchema = SchemaFactory.createForClass(FuentesGastos);
+
+FuentesGastosSchema.index(
+  { sub: 1, nombre: 1 },
+  { unique: true, collation: { locale: 'es', strength: 2 } },
+);
 
 export type FuentesGastosDocument = HydratedDocument<FuentesGastos>;

@@ -46,7 +46,7 @@ FRONT_2 = X # URL del frontend. En caso de que desees otro
 | `npm run start:dev` | Servidor de desarrollo con recarga |
 | `npm run build` | Build de producción en `dist/` |
 | `npm run lint:all` | ESLint + chequeo de tipos |
-| `npm test` | Tests unitarios con Jest. Los modelos de Mongoose se simulan (`src/test-utils/`), así que no necesitan base de datos |
+| `npm test` | Tests unitarios con Vitest. Los modelos de Mongoose se simulan (`src/test-utils/`), así que no necesitan base de datos |
 | `npm run agents:update` | Reemplaza `AGENTS.md` por la última versión de la plantilla del repositorio [Templates-IA](https://github.com/Ale6100/Templates-IA) |
 
 ## Autenticación
@@ -65,7 +65,7 @@ Hay un módulo de NestJS por recurso en `src/`, cada uno con su controller, serv
 | --- | --- | --- |
 | `fuentes_ingresos` | `/fuentes-ingresos` | Fuentes de ingreso del usuario (nombre, color, si está activa, si es aguinaldo) |
 | `conceptos_ingresos` | `/conceptos-ingresos` | Montos ingresados por fuente en cada período |
-| `fuentes_gastos` | `/fuentes-gastos` | Fuentes de gasto del usuario (nombre, color, si es indispensable) |
+| `fuentes_gastos` | `/fuentes-gastos` | Fuentes de gasto del usuario (nombre, color, si es indispensable, seguimiento diario) |
 | `conceptos_gastos` | `/conceptos-gastos` | Gastos por fuente en cada período, con su estado de pago |
 | `fondo_emergencia` | `/fondo-emergencia` | Un documento por usuario con el ahorro de emergencia y su configuración |
 
@@ -77,6 +77,7 @@ Hay un módulo de NestJS por recurso en `src/`, cada uno con su controller, serv
 - **Orden de listados**: los conceptos de gasto e ingreso se devuelven ordenados por período descendente (más reciente primero) y, como segundo criterio, por monto/valor descendente (mayor primero).
 - **Gastos en monto o porcentaje**: un concepto de gasto se define con un `monto` fijo o con un `porcentaje_total` de los ingresos de su período. El valor `-1` en cualquiera de los dos indica que no se usa; al leer los gastos, la API devuelve siempre el `monto` ya calculado.
 - **Gastos en cuotas**: POST /conceptos-gastos/cuotas genera de forma atómica los conceptos de gasto mensuales consecutivos para una compra en cuotas (a partir del período inicial y permitiendo indicar una cuota en curso, ej. 3 de 6). Si alguna de las cuotas entra en conflicto con un gasto ya registrado para esa fuente en ese período, responde 409.
+- **Unicidad de fuentes**: un usuario no puede tener dos fuentes de gasto ni dos de ingreso con el mismo nombre (insensible a mayúsculas/minúsculas). Si intenta crear o renombrar una fuente con un nombre ya existente, responde 409.
 - **Fuentes con conceptos**: una fuente no se puede eliminar mientras tenga conceptos asociados (responde 409).
 - **Copiar el mes anterior**: `POST /conceptos-gastos/copiar-periodo-anterior` y `POST /conceptos-ingresos/copiar-periodo-anterior` copian al `periodo_destino` los conceptos del mes previo, para no recargar cada mes los que se repiten. No pisan las fuentes que ya tienen un concepto en el mes destino. Los gastos copiados quedan sin pagar y sin aclaración, y los definidos por porcentaje se copian como porcentaje (no con el monto final con el que se pagaron); en ingresos se omiten las fuentes inactivas y las de aguinaldo, que no se cobran todos los meses.
 - **Fondo de emergencia**: `porcentaje_total` es la parte del excedente mensual (ingresos menos gastos) que se reserva para el fondo (33.33 % si el usuario no lo configuró). `incluir_dolares` indica si los dólares (`monto_dolares`) cuentan como parte del fondo; la conversión a pesos la hace el frontend.

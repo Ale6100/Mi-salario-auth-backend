@@ -5,15 +5,16 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { vi } from 'vitest';
 import { toHttpException } from './http-error';
 
 describe('toHttpException', () => {
   beforeEach(() => {
-    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('devuelve la misma HttpException que recibe', () => {
